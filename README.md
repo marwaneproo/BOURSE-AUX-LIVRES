@@ -515,7 +515,45 @@ Chaque application dispose de son fichier `tests.py` couvrant les scénarios de 
 
 ## 📄 18. Licence
 
-Projet académique réalisé dans le cadre du Projet de Fin d'Année (PFA) à l'EMSI. Tous droits réservés aux auteurs et à l'établissement. Usage pédagogique uniquement, toute réutilisation commerciale est exclue.
+<div align="center" style="margin: 40px 0;">
+
+  <img src="https://img.shields.io/badge/-PROPRIÉTÉ%20INTELLECTUELLE%20PROTÉGÉE-darkred?style=for-the-badge&labelColor=8B0000&color=DC143C" alt="Propriété Intellectuelle" />
+
+</div>
+
+<div style="background: linear-gradient(135deg, #fff5f5 0%, #ffe6e6 100%); border-left: 6px solid #8B0000; border-radius: 0 12px 12px 0; padding: 28px 32px; margin: 24px 0; box-shadow: 0 4px 15px rgba(139, 0, 0, 0.08);">
+
+  <h3 align="center" style="color: #8B0000; margin-top: 0; font-weight: 700; letter-spacing: 1px;">
+     PROTECTION JURIDIQUE STRICTE
+  </h3>
+
+  <p style="color: #4a0000; line-height: 1.8; font-size: 15px; text-align: justify; margin: 16px 0;">
+    Ce projet a été réalisé dans le cadre du <strong>Projet de Fin d'Année EMSI 2025/2026</strong>. 
+    L'ensemble du code source, de la documentation technique, des schémas d'architecture et des ressources graphiques constituent une <em>œuvre intellectuelle originale</em> protégée par les lois en vigueur sur la propriété intellectuelle.
+  </p>
+
+  <p style="color: #4a0000; line-height: 1.8; font-size: 15px; text-align: justify; margin: 16px 0;">
+     <strong>Interdiction formelle</strong> — Toute reproduction, copie, modification, distribution, décompilation ou réutilisation, totale ou partielle, sans <u>autorisation écrite et préalable</u> des auteurs est strictement interdite.
+  </p>
+
+  <p style="color: #4a0000; line-height: 1.8; font-size: 15px; text-align: justify; margin: 16px 0;">
+     <strong>Usage exclusif</strong> — Ce projet est strictement réservé à un usage pédagogique et évaluatif au sein de l'institution EMSI.
+  </p>
+
+  <p style="color: #4a0000; line-height: 1.8; font-size: 15px; text-align: justify; margin: 16px 0;">
+     <strong>Sanctions</strong> — Tout acte de plagiat, d'appropriation indue ou de contrefaçon engage la responsabilité civile et pénale de son auteur conformément aux articles L.335-2 et suivants du Code de la propriété intellectuelle.
+  </p>
+
+  <div align="center" style="margin-top: 24px; padding-top: 20px; border-top: 1px solid #dcb0b0;">
+    <p style="color: #8B0000; font-weight: 800; font-size: 16px; letter-spacing: 0.5px; margin: 0;">
+      © 2026 — Marwane EL ABBADI & Aissam HASSAN
+    </p>
+    <p style="color: #a52a2a; font-size: 13px; margin: 6px 0 0 0;">
+      Tous droits réservés. Reproduction interdite.
+    </p>
+  </div>
+
+</div>
 
 <br>
 
