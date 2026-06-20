@@ -1,0 +1,264 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" type="image/png" href="{% static 'web/images/logo-emsi.png' %}">
+  <title>Marketplace — Bourse aux Livres EMSI</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{% static 'web/css/style.css' %}" />
+</head>
+<body style="background: var(--gray-50);">
+  {{ frontend_user|json_script:"django-user-data" }}
+  <script>window.DJANGO_USER = JSON.parse(document.getElementById('django-user-data').textContent);</script>
+
+  <div id="header-mount"></div>
+
+  <main class="container">
+    <div class="page-header">
+      <h1>Marketplace des livres</h1>
+      <div style="color:var(--gray-600)" id="result-count">Chargement…</div>
+    </div>
+
+    <div class="marketplace">
+      <!-- SIDEBAR FILTRES -->
+      <aside class="sidebar">
+        <h3>Filtres</h3>
+
+        <div class="filter-group">
+          <h4>Matière</h4>
+           <label class="filter-option"><input type="checkbox" class="f-matiere" value="Économie"> Autre</label>
+          <label class="filter-option"><input type="checkbox" class="f-matiere" value="Math"> Mathématiques</label>
+          <label class="filter-option"><input type="checkbox" class="f-matiere" value="Physique"> Physique</label>
+          <label class="filter-option"><input type="checkbox" class="f-matiere" value="Informatique"> Informatique</label>
+          <label class="filter-option"><input type="checkbox" class="f-matiere" value="Chimie"> Chimie</label>
+          <label class="filter-option"><input type="checkbox" class="f-matiere" value="Anglais"> Anglais</label>
+          <label class="filter-option"><input type="checkbox" class="f-matiere" value="Économie"> Économie</label>
+         
+        </div>
+
+        <div class="filter-group">
+          <h4>Niveau</h4>
+          <select id="f-niveau" class="form-control">
+            <option value="">Tous les niveaux</option>
+            <option>Tronc commun</option>
+            <option>1ère année</option>
+            <option>2ème année</option>
+            <option>3ème année</option>
+            <option>4ème année</option>
+            <option>5ème année</option>
+          </select>
+        </div>
+
+        <div class="filter-group">
+          <h4>Prix max : <span id="prix-val">500</span> DH</h4>
+          <input type="range" id="f-prix" class="range-slider" min="0" max="500" value="500" step="10" />
+        </div>
+
+        <div class="filter-group">
+          <h4>État</h4>
+          <label class="filter-option"><input type="radio" name="etat" value=""> Tous</label>
+          <label class="filter-option"><input type="radio" name="etat" value="NEUF"> Neuf</label>
+          <label class="filter-option"><input type="radio" name="etat" value="BON"> Bon état</label>
+          <label class="filter-option"><input type="radio" name="etat" value="USAGE"> Usagé</label>
+        </div>
+
+        <button class="btn btn-outline btn-block" onclick="resetFilters()">Réinitialiser</button>
+      </aside>
+
+      <!-- GRILLE -->
+      <div>
+        <div class="book-grid" id="book-grid">
+          <!-- skeleton -->
+        </div>
+        <div class="empty-state" id="empty" style="display:none">
+          <div class="icon">📭</div>
+          <h3>Aucun livre trouvé</h3>
+          <p>Essayez de modifier vos filtres</p>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script src="{% static 'web/js/config.js' %}"></script>
+  <script src="{% static 'web/js/api.js' %}"></script>
+  <script src="{% static 'web/js/main.js' %}"></script>
+  <script src="{% static 'web/js/header.js' %}"></script>
+  <script>
+    injectConnectedHeader('livres');
+
+    const grid    = () => document.getElementById('book-grid');
+    const empty   = () => document.getElementById('empty');
+    const count   = () => document.getElementById('result-count');
+    let allBooks = [];
+
+
+
+
+    function renderBooks(list) {
+  count().textContent = `${list.length} livre(s)`;
+  empty().style.display = list.length ? 'none' : 'block';
+  grid().innerHTML = list.map(b => {
+    const vendeurId = b.vendeur?.id || b.vendeur_id || b.vendeur || '';
+    const currentUser = Auth.getUser() || window.DJANGO_USER;
+    const isOwner = Boolean(currentUser && Number(vendeurId) === Number(currentUser.id));
+    const vendeurName = b.vendeur?.prenom && b.vendeur?.nom
+      ? `${b.vendeur.prenom} ${b.vendeur.nom}`
+      : (b.vendeur_username || b.vendeur || 'Étudiant');
+
+    // Note moyenne réelle du vendeur
+    const note = parseFloat(b.vendeur_note || 0);
+    const starsHtml = renderStars(note);
+    const noteLabel = note > 0 ? note.toFixed(1) : '';
+
+    // Image principale avec fallback
+    const imgObj = b.images && b.images.length ? b.images[0] : null;
+    const imgUrl = imgObj
+      ? (imgObj.image_url || (imgObj.image
+          ? (imgObj.image.startsWith('http') ? imgObj.image : CONFIG.MEDIA_URL.replace(/\/$/, '') + '/' + imgObj.image.replace(/^\//, ''))
+          : null))
+      : null;
+
+    const favoriteButton = isOwner ? "" : `
+      <button class="fav-btn ${b.est_favori ? "active" : ""}" aria-label="Ajouter aux favoris" onclick="event.preventDefault(); event.stopPropagation(); toggleFav(${b.id}, this)">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="${b.est_favori ? "currentColor" : "none"}" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12Z" />
+        </svg>
+      </button>`;
+    const contactButton = isOwner ? "" : `
+      <a href="/messagerie/?to=${vendeurId}&name=${encodeURIComponent(vendeurName)}" class="btn btn-primary">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+        </svg>
+        Contacter
+      </a>`;
+
+    return `
+    <div class="book-card">
+      <a href="/catalogue/detail/?id=${b.id}" class="book-image">
+        <span class="book-badge ${(b.etat || 'BON').toLowerCase()}">${etatLabel(b.etat)}</span>
+        ${favoriteButton}
+        
+        ${imgUrl
+          ? `<img src="${imgUrl}" alt="${b.titre}" style="width:100%;height:100%;object-fit:cover;border-radius:8px 8px 0 0" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">`
+          : ''}
+        <div class="book-cover-placeholder" ${imgUrl ? 'style="display:none"' : ''}>
+          <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 0 0 6 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 0 1 6 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 0 1 6-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0 0 18 18a8.967 8.967 0 0 0-6 2.292m0-14.25v14.25" />
+          </svg>
+        </div>
+      </a>
+      <div class="book-info">
+        <div class="book-title">${b.titre}</div>
+        <div class="book-author">${b.auteur || ''}${b.matiere ? ' · ' + b.matiere : ''}</div>
+        <div class="book-price">${!b.prix || b.prix == 0 ? 'Gratuit' : `${b.prix} <span class="currency">DH</span>`}</div>
+        <div class="book-seller">
+          <div class="avatar">${initials(vendeurName)}</div>
+          <div class="seller-name">${vendeurName}</div>
+          <div class="rating" style="display:flex;align-items:center;gap:3px;font-size:12px;">
+            ${starsHtml}
+            ${noteLabel ? `<span style="color:var(--gray-500);margin-left:2px;">${noteLabel}</span>` : '<span style="color:var(--gray-400)">–</span>'}
+          </div>
+        </div>
+        <div class="book-actions">
+          <a href="/catalogue/detail/?id=${b.id}" class="btn btn-outline">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" />
+              <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+            </svg>
+            Voir
+          </a>
+          ${contactButton}
+        </div>
+      </div>
+    </div>
+  `}).join('');
+}
+
+    // Render stars based on real average rating (0–5)
+    function renderStars(note) {
+      const full = Math.floor(note);
+      const half = note - full >= 0.5;
+      const empty = 5 - full - (half ? 1 : 0);
+      let html = '';
+      const starColor = note > 0 ? '#f59e0b' : '#d1d5db';
+      for (let i = 0; i < full; i++)
+        html += `<span style="color:#f59e0b;font-size:13px;">★</span>`;
+      if (half)
+        html += `<span style="color:#f59e0b;font-size:13px;">☆</span>`;
+      for (let i = 0; i < empty; i++)
+        html += `<span style="color:#d1d5db;font-size:13px;">★</span>`;
+      return html;
+    }
+
+    function etatLabel(e) {
+      return {NEUF:'Neuf', BON:'Bon', USAGE:'Usagé'}[e] || 'Bon';
+    }
+
+    function applyFilters() {
+      const matieres = [...document.querySelectorAll('.f-matiere:checked')].map(i => i.value.toLowerCase());
+      const niveau = document.getElementById('f-niveau').value.toLowerCase();
+      const prixMax = +document.getElementById('f-prix').value;
+      const etat = document.querySelector('input[name="etat"]:checked')?.value || '';
+      const q = (new URLSearchParams(location.search).get('q') || '').toLowerCase();
+
+      const list = allBooks.filter(b => {
+        if (matieres.length && !matieres.some(m => (b.matiere||'').toLowerCase().includes(m))) return false;
+        if (niveau && !(b.niveau||'').toLowerCase().includes(niveau)) return false;
+        // prix null = gratuit = 0, ne pas bloquer
+        const prix = b.prix == null ? 0 : +b.prix;
+        if (prix > prixMax) return false;
+        if (etat && b.etat !== etat) return false;
+        if (q && !`${b.titre} ${b.auteur} ${b.matiere}`.toLowerCase().includes(q)) return false;
+        return true;
+      });
+      renderBooks(list);
+    }
+
+    function resetFilters() {
+      document.querySelectorAll('.f-matiere').forEach(i => i.checked = false);
+      document.getElementById('f-niveau').value = '';
+      document.getElementById('f-prix').value = 500;
+      document.getElementById('prix-val').textContent = 500;
+      document.querySelectorAll('input[name="etat"]').forEach(i => i.checked = false);
+      renderBooks(allBooks);
+    }
+
+    async function toggleFav(id, btn) {
+      if (!Auth.isLogged()) {
+        window.location.href = '/connexion/?next=' + encodeURIComponent(window.location.pathname + window.location.search);
+        return;
+      }
+      try {
+        const result = await API.post(ENDPOINTS.FAVORIS_TOGGLE, { livre: id });
+        btn.classList.toggle('active', result.est_favori);
+        toast(result.message, 'success');
+      } catch (e) { toast('Connectez-vous pour ajouter aux favoris', 'error'); }
+    }
+
+    // Sliders
+    document.getElementById('f-prix').addEventListener('input', e => {
+      document.getElementById('prix-val').textContent = e.target.value;
+      applyFilters();
+    });
+    document.getElementById('f-niveau').addEventListener('change', applyFilters);
+    document.querySelectorAll('.f-matiere, input[name="etat"]').forEach(i => i.addEventListener('change', applyFilters));
+
+    async function load() {
+      count().textContent = 'Chargement…';
+      try {
+        const data = await API.get(ENDPOINTS.LIVRES);
+        allBooks = Array.isArray(data) ? data : (data?.results || []);
+      } catch (err) {
+        console.error('Erreur chargement livres:', err);
+        allBooks = [];
+        count().textContent = 'Erreur de chargement';
+      }
+      applyFilters();
+    }
+    load();
+  </script>
+</body>
+</html>

@@ -1,0 +1,101 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" type="image/png" href="{% static 'web/images/logo-emsi.png' %}">
+  <title>Mes commandes — Bourse aux Livres EMSI</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{% static 'web/css/style.css' %}" />
+</head>
+<body style="background: var(--gray-50);">
+  {{ frontend_user|json_script:"django-user-data" }}
+  <script>window.DJANGO_USER = JSON.parse(document.getElementById('django-user-data').textContent);</script>
+
+  <div id="header-mount"></div>
+
+  <main class="container">
+    <div class="page-header">
+      <h1>Mes commandes</h1>
+      <a href="/catalogue/" class="btn btn-outline">← Continuer mes achats</a>
+    </div>
+
+    <div class="data-table">
+      <table>
+        <thead>
+          <tr>
+            <th>Livre</th><th>Date</th><th>Vendeur</th><th>Prix</th><th>Statut</th><th>Suivi</th><th></th>
+          </tr>
+        </thead>
+        <tbody id="cmd-body"></tbody>
+      </table>
+    </div>
+  </main>
+
+  <script src="{% static 'web/js/config.js' %}"></script>
+  <script src="{% static 'web/js/api.js' %}"></script>
+  <script src="{% static 'web/js/main.js' %}"></script>
+  <script src="{% static 'web/js/header.js' %}"></script>
+  <script>
+    injectConnectedHeader();
+
+    const statusMap = {
+      EN_ATTENTE:           {cls:'attente',    label:'En attente'},
+      CONFIRMEE:            {cls:'confirmee',  label:'Confirmée'},
+      EN_COURS_DE_LIVRAISON:{cls:'livraison',  label:'En livraison'},
+      LIVREE:               {cls:'livree',     label:'Livrée'},
+      ANNULEE:              {cls:'annulee',    label:'Annulée'},
+    };
+
+    function render(cmds) {
+      const body = document.getElementById('cmd-body');
+      if (!cmds.length) {
+        body.innerHTML = `<tr><td colspan="7"><div class="empty-state"><div class="icon">📦</div><h3>Aucune commande</h3><p>Vos commandes apparaîtront ici</p></div></td></tr>`;
+        return;
+      }
+      body.innerHTML = cmds.map(c => {
+        const s = statusMap[c.statut] || statusMap.EN_ATTENTE;
+        return `
+        <tr>
+          <td>
+            <div class="book-cell">
+              <div class="thumb-sm">📖</div>
+              <div>
+                <div style="font-weight:600">${c.livre_titre || c.livre?.titre || 'Livre'}</div>
+                <div style="font-size:12px; color:var(--gray-600)">${c.livre_auteur || ''}</div>
+              </div>
+            </div>
+          </td>
+          <td>${new Date(c.date_commande || Date.now()).toLocaleDateString('fr-FR')}</td>
+          <td>${c.vendeur_username || c.vendeur || '—'}</td>
+          <td style="font-weight:700; color:var(--primary)">${formatPrice(c.prix_total || c.livre?.prix)}</td>
+          <td><span class="status-badge ${s.cls}">${s.label}</span></td>
+          <td style="font-size:13px; color:var(--gray-600)">${c.tracking || '—'}</td>
+          <td><button class="btn btn-sm btn-outline">Détails</button></td>
+        </tr>`;
+      }).join('');
+    }
+
+    async function load() {
+      const demo = [
+        {id:1, livre_titre:'Analyse Mathématique I', livre_auteur:'J. Bouchard', vendeur_username:'A. Benali',
+         prix_total:120, statut:'EN_COURS_DE_LIVRAISON', date_commande: new Date(Date.now()-86400000), tracking:'BL-2026-00481'},
+        {id:2, livre_titre:'Bases de Données SQL', livre_auteur:'M. Karim', vendeur_username:'Y. Idrissi',
+         prix_total:95, statut:'CONFIRMEE', date_commande: new Date(Date.now()-3*86400000), tracking:'—'},
+        {id:3, livre_titre:'Mécanique des Fluides', livre_auteur:'R. Dupuis', vendeur_username:'L. Tazi',
+         prix_total:0, statut:'LIVREE', date_commande: new Date(Date.now()-15*86400000), tracking:'Remise en main propre'},
+      ];
+      let cmds = demo;
+      try {
+        const d = await API.get(ENDPOINTS.COMMANDES);
+        const list = Array.isArray(d) ? d : (d?.results || []);
+        if (list.length) cmds = list;
+      } catch {}
+      render(cmds);
+    }
+    load();
+  </script>
+</body>
+</html>

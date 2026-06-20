@@ -1,0 +1,1091 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" type="image/png" href="{% static 'web/images/logo-emsi.png' %}">
+  <title>Admin — Bourse aux Livres EMSI</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #edf7f2;
+      --surface: #ffffff;
+      --surface-2: #f8fcfa;
+      --line: #d9eee6;
+      --line-strong: #bfe6d7;
+      --text: #173126;
+      --muted: #61706a;
+      --green: #0f6e56;
+      --green-2: #18a079;
+      --green-3: #e3f6ef;
+      --blue: #185fa5;
+      --amber: #854f0b;
+      --red: #a32d2d;
+      --shadow: 0 22px 60px rgba(14, 72, 57, .08);
+      --shadow-soft: 0 8px 24px rgba(14, 72, 57, .06);
+      --radius-xl: 22px;
+      --radius-lg: 16px;
+      --radius: 12px;
+    }
+    body {
+      font-family: 'Inter', sans-serif;
+      background:
+        radial-gradient(circle at top left, rgba(24, 160, 121, .14), transparent 28%),
+        radial-gradient(circle at 90% 10%, rgba(15, 110, 86, .10), transparent 26%),
+        var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    .sidebar {
+      position: fixed;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 258px;
+      background: linear-gradient(180deg, #0b5c48 0%, #0f6e56 45%, #0b5c48 100%);
+      display: flex;
+      flex-direction: column;
+      z-index: 100;
+      box-shadow: 12px 0 32px rgba(6, 50, 39, .16);
+    }
+    .sidebar-logo {
+      padding: 28px 22px 22px;
+      border-bottom: 1px solid rgba(255,255,255,.12);
+    }
+    .sidebar-logo h2 { color: #fff; font-size: 16px; font-weight: 800; letter-spacing: -.02em; }
+    .sidebar-logo p { color: rgba(255,255,255,.68); font-size: 11px; margin-top: 4px; }
+    .sidebar-nav { padding: 16px 12px; flex: 1; }
+    .nav-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 12px 14px; color: rgba(255,255,255,.75); cursor: pointer;
+      font-size: 13px; font-weight: 600; border-left: 3px solid transparent;
+      border-radius: 12px; margin-bottom: 6px; transition: all .18s ease;
+    }
+    .nav-item:hover { background: rgba(255,255,255,.08); color: #fff; transform: translateX(2px); }
+    .nav-item.active { background: rgba(255,255,255,.14); color: #fff; border-left-color: #8ff0d0; }
+    .nav-item i { font-size: 18px; }
+    .sidebar-footer {
+      padding: 18px 20px 22px;
+      border-top: 1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.04);
+      margin-top: auto;
+    }
+    .sidebar-footer p { color: rgba(255,255,255,.56); font-size: 11px; margin-bottom: 3px; }
+    .sidebar-footer strong { color: #fff; font-size: 13px; word-break: break-word; }
+
+    .main {
+      margin-left: 258px;
+      padding: 28px clamp(18px, 2.2vw, 32px) 44px;
+      min-width: 0;
+    }
+    .topbar {
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 18px; margin-bottom: 24px;
+      position: sticky; top: 0; z-index: 20;
+      backdrop-filter: blur(10px);
+      padding: 8px 0 14px;
+    }
+    .topbar h1 {
+      font-size: clamp(22px, 2.4vw, 30px);
+      font-weight: 800;
+      color: var(--green);
+      letter-spacing: -.03em;
+    }
+    .logout-btn {
+      background: linear-gradient(135deg, #ef4444, #dc2626);
+      color: #fff; border: none;
+      padding: 11px 18px; border-radius: 12px; cursor: pointer;
+      font-size: 13px; font-weight: 700; display: flex; align-items: center; gap: 7px;
+      box-shadow: 0 10px 24px rgba(220, 38, 38, .18);
+    }
+    .logout-btn:hover { filter: brightness(1.02); transform: translateY(-1px); }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(6, minmax(0, 1fr));
+      gap: 14px;
+      margin-bottom: 22px;
+    }
+    .stat-card {
+      background: linear-gradient(180deg, #fff 0%, #fbfffd 100%);
+      border-radius: 18px;
+      padding: 18px 16px;
+      border: 1px solid var(--line);
+      box-shadow: var(--shadow-soft);
+      min-width: 0;
+    }
+    .stat-ico {
+      width: 40px; height: 40px; border-radius: 12px;
+      display: grid; place-items: center;
+      margin-bottom: 12px; font-size: 18px;
+    }
+    .stat-ico.g  { background: #e6f7f1; color: var(--green); }
+    .stat-ico.b  { background: #e7f1fb; color: var(--blue); }
+    .stat-ico.am { background: #fbefd9; color: var(--amber); }
+    .stat-ico.r  { background: #fdeaea; color: var(--red); }
+    .stat-val { font-size: clamp(24px, 2vw, 30px); font-weight: 800; color: var(--green); line-height: 1; }
+    .stat-val.danger { color: var(--red); }
+    .stat-lbl { font-size: 11px; color: var(--muted); margin-top: 5px; text-transform: uppercase; letter-spacing: .08em; }
+
+    .card {
+      background: linear-gradient(180deg, #fff 0%, #fcfffe 100%);
+      border-radius: var(--radius-xl);
+      border: 1px solid var(--line);
+      padding: 22px;
+      box-shadow: var(--shadow-soft);
+      min-width: 0;
+    }
+    .card-title {
+      font-size: 13px; font-weight: 700; color: var(--green);
+      margin-bottom: 16px; display: flex; align-items: center; gap: 8px;
+      min-width: 0;
+    }
+    .section-row { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px; margin-bottom: 18px; }
+    .section-row > .card { min-width: 0; overflow: hidden; }
+    .section-row-3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; margin-bottom: 18px; }
+
+    .bar-chart {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(72px, 110px));
+      justify-content: center;
+      align-items: end;
+      gap: clamp(18px, 4vw, 38px);
+      min-height: 150px;
+      padding: 8px 12px 0;
+      overflow: hidden;
+    }
+    .bar-col {
+      display: flex; flex-direction: column; align-items: center; gap: 6px;
+      min-width: 0;
+    }
+    .bar-val-lbl { font-size: 11px; font-weight: 700; color: var(--green); line-height: 1; }
+    .bar {
+      width: 100%;
+      border-radius: 9px 9px 0 0;
+      min-height: 6px;
+      max-width: 100%;
+      box-shadow: inset 0 -1px 0 rgba(255,255,255,.35);
+    }
+    .bar-name {
+      font-size: 10px; color: var(--muted); text-align: center; line-height: 1.15;
+      word-break: break-word; max-width: 100%;
+    }
+    .donut-wrap {
+      display: flex; align-items: center; gap: 22px;
+      margin-top: 10px; flex-wrap: wrap; justify-content: center;
+    }
+    .legend-list {
+      display: flex; flex-direction: column; gap: 10px;
+      min-width: 0; flex: 1 1 220px;
+    }
+    .legend-item { display: flex; align-items: center; gap: 8px; font-size: 12px; color: #34423b; }
+    .legend-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+
+    .notif-bar {
+      background: #fff; border-radius: 18px; border: 1px solid var(--line);
+      padding: 18px 20px; margin-bottom: 18px;
+      display: flex; gap: 12px; align-items: flex-end; flex-wrap: wrap;
+      box-shadow: var(--shadow-soft);
+    }
+    .notif-bar label { font-size: 11px; font-weight: 800; color: var(--muted); display: block; margin-bottom: 6px; letter-spacing: .5px; text-transform: uppercase; }
+    .notif-bar select, .notif-bar input {
+      border: 1px solid var(--line-strong); border-radius: 10px; padding: 10px 13px;
+      font-size: 13px; color: #374151; background: #f8fffd; outline: none; width: 100%;
+    }
+    .notif-bar select:focus, .notif-bar input:focus { border-color: var(--green); background: #fff; }
+    .notif-bar .send-btn {
+      background: linear-gradient(135deg, var(--green), var(--green-2)); color: #fff; border: none;
+      padding: 11px 22px; border-radius: 10px; cursor: pointer;
+      font-size: 13px; font-weight: 700; white-space: nowrap; display: flex; align-items: center; gap: 7px;
+      box-shadow: 0 10px 22px rgba(15, 110, 86, .18);
+    }
+    .notif-bar .send-btn:hover { filter: brightness(1.03); }
+
+    .admin-toolbar { display:flex; gap:10px; flex-wrap:wrap; margin-bottom:14px; }
+    .admin-toolbar input, .admin-toolbar select { border:1px solid var(--line-strong); border-radius:10px; padding:9px 12px; background:#f8fffd; color:var(--text); font:inherit; }
+    .admin-toolbar input { flex:1 1 220px; }
+    .admin-pagination { display:flex; align-items:center; justify-content:flex-end; gap:8px; margin-top:14px; font-size:12px; color:var(--muted); }
+    .admin-pagination button { border:1px solid var(--line-strong); background:#fff; color:var(--green); border-radius:8px; padding:6px 10px; cursor:pointer; }
+    .admin-pagination button:disabled { opacity:.45; cursor:not-allowed; }
+    .admin-dialog-overlay { position:fixed; inset:0; z-index:10000; display:none; place-items:center; padding:20px; background:rgba(5,35,27,.48); }
+    .admin-dialog-overlay.active { display:grid; }
+    .admin-dialog { width:min(440px,100%); background:#fff; border-radius:18px; padding:24px; box-shadow:var(--shadow); }
+    .admin-dialog h3 { color:var(--green); margin-bottom:8px; }
+    .admin-dialog p { color:var(--muted); font-size:13px; line-height:1.5; }
+    .admin-dialog textarea { width:100%; margin-top:14px; border:1px solid var(--line-strong); border-radius:10px; padding:10px; font:inherit; resize:vertical; }
+    .admin-dialog-actions { display:flex; justify-content:flex-end; gap:8px; margin-top:18px; }
+    .activity-item { padding:10px 0; border-bottom:1px solid #eef6f2; font-size:12px; color:#47554f; }
+    .activity-item:last-child { border-bottom:0; }
+
+    .table-wrap { overflow: auto; border-radius: 14px; border: 1px solid #edf5f1; }
+    table { width: 100%; border-collapse: collapse; font-size: 12.5px; min-width: 640px; }
+    thead th {
+      color: var(--muted); font-weight: 800; font-size: 10.5px;
+      text-transform: uppercase; letter-spacing: .6px;
+      padding: 10px 10px; text-align: left;
+      border-bottom: 1px solid #e6f4ee;
+      background: #f8fbfa;
+    }
+    tbody td {
+      padding: 11px 10px; border-bottom: 1px solid #f0f7f4;
+      color: #35443e; vertical-align: middle;
+    }
+    tbody tr:last-child td { border-bottom: none; }
+    tbody tr:hover td { background: #f8fcfa; }
+
+    .badge {
+      display: inline-flex; align-items: center; padding: 4px 9px;
+      border-radius: 999px; font-size: 11px; font-weight: 700;
+    }
+    .badge-green  { background: #e6f7f1; color: var(--green); }
+    .badge-amber  { background: #fbefd9; color: var(--amber); }
+    .badge-red    { background: #fdeaea; color: var(--red); }
+    .badge-gray   { background: #f1f4f2; color: #63726c; }
+    .badge-blue   { background: #e7f1fb; color: var(--blue); }
+
+    .btn-act {
+      border: none; padding: 6px 11px; border-radius: 9px;
+      cursor: pointer; font-size: 11.5px; font-weight: 700;
+      display: inline-flex; align-items: center; gap: 4px;
+    }
+    .btn-del   { background: #fdeaea; color: var(--red); }
+    .btn-del:hover { background: #f7c1c1; }
+    .btn-ban   { background: #fbefd9; color: var(--amber); }
+    .btn-ban:hover { background: #f7d39c; }
+    .btn-unban { background: #e6f7f1; color: var(--green); }
+    .btn-unban:hover { background: #c7f0e1; }
+    .btn-treat { background: #e7f1fb; color: var(--blue); }
+    .btn-treat:hover { background: #c6dcf3; }
+
+    .tabs { display: flex; gap: 4px; margin-bottom: 14px; border-bottom: 1px solid var(--line-strong); padding-bottom: 0; }
+    .tab-btn {
+      padding: 10px 18px; font-size: 13px; font-weight: 700; border: none;
+      background: none; cursor: pointer; color: var(--muted);
+      border-bottom: 2px solid transparent; margin-bottom: -1px; border-radius: 10px 10px 0 0;
+    }
+    .tab-btn:hover { color: var(--green); background: rgba(15,110,86,.06); }
+    .tab-btn.active { color: var(--green); border-bottom-color: var(--green); background: none; }
+    .tab-pane { display: none; }
+    .tab-pane.active { display: block; }
+
+    .login-wrap {
+      min-height: 100vh; display: flex; align-items: center; justify-content: center;
+      padding: 40px 20px;
+      background:
+        radial-gradient(circle at top left, rgba(24,160,121,.16), transparent 26%),
+        radial-gradient(circle at 90% 10%, rgba(15,110,86,.10), transparent 25%),
+        linear-gradient(135deg, #e8f7f0 0%, #f5fbf8 100%);
+    }
+    .login-box {
+      background: #fff; border-radius: 24px; padding: 44px 40px;
+      width: 100%; max-width: 440px; border: 1px solid var(--line);
+      box-shadow: var(--shadow);
+    }
+    .login-box .ico-big {
+      width: 72px; height: 72px; border-radius: 20px; background: #e6f7f1;
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 20px; font-size: 32px; color: var(--green);
+    }
+    .login-box h2 { text-align: center; font-size: 22px; font-weight: 800; color: var(--green); margin-bottom: 6px; }
+    .login-box p  { text-align: center; font-size: 13px; color: var(--muted); margin-bottom: 28px; }
+    .form-lbl { font-size: 12px; font-weight: 800; color: #34433e; display: block; margin-bottom: 7px; text-transform: uppercase; letter-spacing: .5px; }
+    .form-inp {
+      width: 100%; border: 1px solid var(--line-strong); border-radius: 10px;
+      padding: 11px 14px; font-size: 14px; color: #1a2e1f; background: #f8fffd;
+      outline: none; margin-bottom: 16px;
+    }
+    .form-inp:focus { border-color: var(--green); background: #fff; }
+    .login-btn {
+      width: 100%; padding: 13px; background: linear-gradient(135deg, var(--green), var(--green-2)); color: #fff;
+      border: none; border-radius: 12px; font-size: 15px; font-weight: 800;
+      cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;
+      box-shadow: 0 10px 22px rgba(15,110,86,.18);
+    }
+    .login-btn:hover { filter: brightness(1.02); }
+    .err-box {
+      background: #fdeaea; color: var(--red); border-radius: 10px;
+      padding: 10px 14px; font-size: 13px; margin-bottom: 16px; display: none;
+    }
+    .back-link { display: block; text-align: center; margin-top: 20px; font-size: 13px; color: var(--muted); text-decoration: none; }
+    .back-link:hover { color: var(--green); }
+    .hint-box {
+      background: #e6f7f1; border-radius: 12px; padding: 12px 14px;
+      margin-bottom: 20px; font-size: 12px; color: var(--green); text-align: center;
+    }
+
+    #toast {
+      position: fixed; bottom: 28px; right: 28px; z-index: 9999;
+      padding: 13px 20px; border-radius: 12px; font-size: 14px; font-weight: 700;
+      color: #fff; opacity: 0; transition: opacity .3s; pointer-events: none;
+    }
+    #toast.show { opacity: 1; }
+    #toast.success { background: var(--green); }
+    #toast.error   { background: #ef4444; }
+
+    @media (max-width: 1280px) {
+      .stats { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+      .section-row { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 980px) {
+      .sidebar {
+        position: static;
+        width: 100%;
+        min-height: auto;
+      }
+      .main { margin-left: 0; }
+      .topbar { position: static; padding-top: 0; }
+      .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .section-row-3 { grid-template-columns: 1fr; }
+      .bar-chart { min-height: 145px; }
+      .table-wrap { overflow-x: auto; }
+      table { min-width: 720px; }
+    }
+    @media (max-width: 640px) {
+      .main { padding: 20px 14px 34px; }
+      .stats { grid-template-columns: 1fr; }
+      .card { padding: 18px 16px; border-radius: 18px; }
+      .login-box { padding: 34px 22px; }
+      .bar-chart { gap: 8px; }
+      .bar-chart {
+        grid-template-columns: repeat(3, minmax(56px, 78px));
+        gap: 12px;
+        padding-inline: 0;
+      }
+      .bar-name { font-size: 9px; }
+    }
+  </style>
+</head>
+<body>
+  {{ frontend_user|json_script:"django-user-data" }}
+  <script>window.DJANGO_USER = JSON.parse(document.getElementById('django-user-data').textContent);</script>
+
+<div id="toast"></div>
+
+<script src="{% static 'web/js/config.js' %}"></script>
+<script src="{% static 'web/js/api.js' %}"></script>
+<script src="{% static 'web/js/main.js' %}"></script>
+<script>
+// ── Toast local (sans header.js) ──────────────────────────────────────────────
+function showToast(msg, type = 'success') {
+  const t = document.getElementById('toast');
+  t.textContent  = msg;
+  t.className    = `show ${type}`;
+  clearTimeout(window._toastTimer);
+  window._toastTimer = setTimeout(() => { t.className = type; }, 3200);
+}
+
+// ── Auth check ────────────────────────────────────────────────────────────────
+function isAdmin() {
+  if (!Auth.isLogged()) return false;
+  const u = Auth.getUser() || window.DJANGO_USER;
+  return !!(u && u.est_administrateur);
+}
+
+// ── Login form ────────────────────────────────────────────────────────────────
+function renderLogin() {
+  document.body.innerHTML = `
+    <div id="toast"></div>
+    <div class="login-wrap">
+      <div class="login-box">
+        <div class="ico-big"><i class="ti ti-shield-check"></i></div>
+        <h2>Espace Administrateur</h2>
+        <p>Connectez-vous avec le compte admin</p>
+     
+
+     
+        <div id="err-box" class="err-box"></div>
+        <label class="form-lbl">Nom d'utilisateur</label>
+        <input id="a-user" class="form-inp" placeholder="admin_emsi"
+          onkeydown="if(event.key==='Enter') doLogin()">
+        <label class="form-lbl">Mot de passe</label>
+        <input id="a-pass" class="form-inp" type="password" placeholder="••••••••"
+          onkeydown="if(event.key==='Enter') doLogin()">
+        <button class="login-btn" onclick="doLogin()" id="a-btn">
+          <i class="ti ti-lock-open"></i> Connexion Admin
+        </button>
+        <a href="/" class="back-link">← Retour à l'accueil</a>
+      </div>
+    </div>`;
+}
+
+async function doLogin() {
+  const user = document.getElementById('a-user').value.trim();
+  const pass = document.getElementById('a-pass').value;
+  const err  = document.getElementById('err-box');
+  const btn  = document.getElementById('a-btn');
+  err.style.display = 'none';
+  btn.disabled = true; btn.textContent = 'Connexion…';
+  try {
+    const data = await API.post(ENDPOINTS.ADMIN_LOGIN, { username: user, password: pass });
+    if (!data.user?.est_administrateur) {
+      err.textContent   = '❌ Ce compte n\'a pas les droits administrateur.';
+      err.style.display = 'block';
+      btn.disabled = false; btn.innerHTML = '<i class="ti ti-lock-open"></i> Connexion Admin';
+      return;
+    }
+    Auth.setSession(data.access, data.refresh, data.user);
+    window.location.reload();
+  } catch (e) {
+    err.textContent   = '❌ Identifiants incorrects.';
+    err.style.display = 'block';
+    btn.disabled = false; btn.innerHTML = '<i class="ti ti-lock-open"></i> Connexion Admin';
+  }
+}
+
+// ── Render panel ──────────────────────────────────────────────────────────────
+function renderPanel() {
+  const u = Auth.getUser() || window.DJANGO_USER;
+  document.body.innerHTML = `
+  <div id="toast"></div>
+
+  <div class="sidebar">
+    <div class="sidebar-logo">
+      <h2>Bourse aux Livres</h2>
+      <p>EMSI — Administration</p>
+    </div>
+    <div class="sidebar-nav">
+      <div class="nav-item active" onclick="switchTab('dashboard',this)">
+        <i class="ti ti-layout-dashboard"></i> Dashboard
+      </div>
+      <div class="nav-item" onclick="switchTab('livres',this)">
+        <i class="ti ti-books"></i> Livres
+      </div>
+      <div class="nav-item" onclick="switchTab('users',this)">
+        <i class="ti ti-users"></i> Utilisateurs
+      </div>
+      <div class="nav-item" onclick="switchTab('signals',this)">
+        <i class="ti ti-flag"></i> Signalements
+      </div>
+      <div class="nav-item" onclick="switchTab('notifs',this)">
+        <i class="ti ti-bell"></i> Notifications
+      </div>
+    </div>
+    <div class="sidebar-footer">
+      <p>Connecté en tant que</p>
+      <strong>${u?.username || 'admin_emsi'}</strong>
+    </div>
+  </div>
+
+  <div class="main">
+    <div class="topbar">
+      <h1 id="page-title">Dashboard</h1>
+      <button class="logout-btn" onclick="Auth.logout()">
+        <i class="ti ti-logout" style="font-size:15px;"></i> Déconnexion
+      </button>
+    </div>
+
+    <!-- ════ DASHBOARD ════ -->
+    <div id="tab-dashboard" class="tab-pane active">
+
+      <div class="stats">
+        <div class="stat-card"><div class="stat-ico g"><i class="ti ti-users"></i></div><div class="stat-val" id="s-users">—</div><div class="stat-lbl">Utilisateurs</div></div>
+        <div class="stat-card"><div class="stat-ico b"><i class="ti ti-books"></i></div><div class="stat-val" id="s-livres">—</div><div class="stat-lbl">Livres total</div></div>
+        <div class="stat-card"><div class="stat-ico g"><i class="ti ti-circle-check"></i></div><div class="stat-val" id="s-dispo">—</div><div class="stat-lbl">Disponibles</div></div>
+        <div class="stat-card"><div class="stat-ico am"><i class="ti ti-shopping-cart"></i></div><div class="stat-val" id="s-vendus">—</div><div class="stat-lbl">Vendus</div></div>
+        <div class="stat-card"><div class="stat-ico b"><i class="ti ti-package"></i></div><div class="stat-val" id="s-commandes">—</div><div class="stat-lbl">Commandes</div></div>
+        <div class="stat-card"><div class="stat-ico r"><i class="ti ti-flag"></i></div><div class="stat-val danger" id="s-signals">—</div><div class="stat-lbl">Signalements</div></div>
+      </div>
+
+      <div class="section-row">
+        <div class="card">
+          <div class="card-title"><i class="ti ti-chart-bar"></i> Livres par statut</div>
+          <div class="bar-chart" id="chart-statuts">
+            <div style="color:#9ca3af;font-size:13px;">Chargement…</div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title"><i class="ti ti-sparkles"></i> État physique des livres</div>
+          <div class="bar-chart" id="chart-etat">
+            <div style="color:#9ca3af;font-size:13px;">Chargement…</div>
+          </div>
+
+        </div>
+      </div>
+
+      <div class="section-row">
+        <div class="card" style="flex:1;">
+          <div class="card-title"><i class="ti ti-chart-donut"></i> Répartition livres</div>
+          <div class="donut-wrap">
+            <svg id="donut-svg" width="130" height="130" viewBox="0 0 130 130">
+              <circle cx="65" cy="65" r="50" fill="none" stroke="#e1f5ee" stroke-width="24"/>
+              <text x="65" y="60" text-anchor="middle" font-size="18" font-weight="700" fill="#0f6e56" id="donut-total">—</text>
+              <text x="65" y="76" text-anchor="middle" font-size="11" fill="#6b7280">livres</text>
+            </svg>
+            <div class="legend-list" id="donut-legend">
+              <div style="color:#9ca3af;font-size:12px;">Chargement…</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section-row">
+        <div class="card">
+          <div class="card-title"><i class="ti ti-books"></i> Derniers livres publiés</div>
+          <div class="table-wrap">
+            <table><thead><tr><th>Titre</th><th>Vendeur</th><th>Statut</th><th></th></tr></thead>
+              <tbody id="dash-livres"><tr><td colspan="4" style="color:#9ca3af;text-align:center;padding:20px;">Chargement…</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title"><i class="ti ti-users"></i> Derniers utilisateurs</div>
+          <div class="table-wrap">
+            <table><thead><tr><th>Username</th><th>Nom complet</th><th>Actions</th></tr></thead>
+              <tbody id="dash-users"><tr><td colspan="3" style="color:#9ca3af;text-align:center;padding:20px;">Chargement…</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /dashboard -->
+
+    <!-- ════ LIVRES ════ -->
+    <div id="tab-livres" class="tab-pane">
+      <div class="card">
+        <div class="card-title"><i class="ti ti-books"></i> Tous les livres</div>
+        <div class="admin-toolbar"><input id="books-search" placeholder="Rechercher titre, auteur, matière ou vendeur" oninput="scheduleAdminFilter()"><select id="books-status" onchange="applyAdminFilters()"><option value="">Tous les statuts</option><option value="DISPONIBLE">Disponibles</option><option value="VENDU">Vendus</option><option value="ARCHIVEE">Archivés</option></select></div>
+        <div class="table-wrap">
+          <table><thead><tr><th>#</th><th>Titre</th><th>Vendeur</th><th>Matière</th><th>Prix</th><th>Statut</th><th>Date</th><th>Action</th></tr></thead>
+            <tbody id="all-livres-tbody"><tr><td colspan="8" style="color:#9ca3af;text-align:center;padding:24px;">Chargement…</td></tr></tbody>
+          </table>
+        </div>
+        <div class="admin-pagination" id="books-pagination"></div>
+      </div>
+    </div>
+
+    <!-- ════ USERS ════ -->
+    <div id="tab-users" class="tab-pane">
+      <div class="card">
+        <div class="card-title"><i class="ti ti-users"></i> Tous les utilisateurs</div>
+        <div class="admin-toolbar"><input id="users-search" placeholder="Rechercher nom, username ou email" oninput="scheduleAdminFilter()"><select id="users-status" onchange="applyAdminFilters()"><option value="">Tous</option><option value="active">Actifs</option><option value="banned">Bannis</option></select></div>
+        <div class="table-wrap">
+          <table><thead><tr><th>#</th><th>Username</th><th>Nom complet</th><th>Email</th><th>Statut</th><th>Actions</th></tr></thead>
+            <tbody id="all-users-tbody"><tr><td colspan="5" style="color:#9ca3af;text-align:center;padding:24px;">Chargement…</td></tr></tbody>
+          </table>
+        </div>
+        <div class="admin-pagination" id="users-pagination"></div>
+      </div>
+    </div>
+
+    <!-- ════ SIGNALEMENTS ════ -->
+    <div id="tab-signals" class="tab-pane">
+      <div class="card">
+        <div class="card-title"><i class="ti ti-flag"></i> Signalements</div>
+        <div class="admin-toolbar"><input id="reports-search" placeholder="Rechercher raison ou signaleur" oninput="scheduleAdminFilter()"><select id="reports-status" onchange="applyAdminFilters()"><option value="">Tous les statuts</option><option value="PENDING">En attente</option><option value="ACCEPTED">Acceptés</option><option value="REJECTED">Rejetés</option></select></div>
+        <div class="table-wrap">
+          <table><thead><tr><th>#</th><th>Signaleur</th><th>Livre</th><th>Raison</th><th>Statut</th><th>Action</th></tr></thead>
+            <tbody id="all-signals-tbody"><tr><td colspan="6" style="color:#9ca3af;text-align:center;padding:24px;">Chargement…</td></tr></tbody>
+          </table>
+        </div>
+        <div class="admin-pagination" id="reports-pagination"></div>
+      </div>
+    </div>
+
+    <!-- ════ NOTIFICATIONS ════ -->
+    <div id="tab-notifs" class="tab-pane">
+      <div style="max-width:700px;margin:0 auto;">
+
+        <!-- Hero header -->
+        <div style="background:linear-gradient(135deg,#0f6e56 0%,#1a9e7a 100%);border-radius:18px;padding:28px 32px;margin-bottom:24px;display:flex;align-items:center;gap:20px;box-shadow:0 14px 34px rgba(15,110,86,.15);">
+          <div style="width:52px;height:52px;background:rgba(255,255,255,.18);border-radius:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+            <i class="ti ti-bell-ringing" style="font-size:26px;color:#fff;"></i>
+          </div>
+          <div>
+            <div style="color:#fff;font-size:18px;font-weight:800;letter-spacing:-.3px;">Envoyer une notification</div>
+            <div style="color:rgba(255,255,255,.72);font-size:13px;margin-top:2px;">Communiquez instantanément avec vos utilisateurs</div>
+          </div>
+        </div>
+
+        <!-- Card form -->
+        <div style="background:#fff;border-radius:16px;box-shadow:0 2px 16px rgba(15,110,86,.08);border:1px solid #e6f7f1;overflow:hidden;">
+
+          <!-- Recipient block -->
+          <div style="padding:24px 28px;border-bottom:1px solid #f0faf6;">
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
+              <div style="width:32px;height:32px;background:#e6f7f1;border-radius:9px;display:flex;align-items:center;justify-content:center;">
+                <i class="ti ti-users" style="font-size:16px;color:#0f6e56;"></i>
+              </div>
+              <div>
+                <div style="font-size:13px;font-weight:700;color:#111827;">Destinataire</div>
+                <div style="font-size:11px;color:#9ca3af;margin-top:1px;">Choisissez un utilisateur ou diffusez à tous</div>
+              </div>
+            </div>
+            <select id="notif-target" style="width:100%;border:1.5px solid #d1fae5;border-radius:10px;padding:11px 14px;font-size:13px;background:#f8fffe;color:#111827;outline:none;cursor:pointer;transition:border-color .2s;" onfocus="this.style.borderColor='#0f6e56'" onblur="this.style.borderColor='#d1fae5'">
+              <option value="all">📢 Tous les utilisateurs</option>
+            </select>
+          </div>
+
+          <!-- Message block -->
+          <div style="padding:24px 28px;border-bottom:1px solid #f0faf6;">
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
+              <div style="width:32px;height:32px;background:#e6f7f1;border-radius:9px;display:flex;align-items:center;justify-content:center;">
+                <i class="ti ti-message" style="font-size:16px;color:#0f6e56;"></i>
+              </div>
+              <div>
+                <div style="font-size:13px;font-weight:700;color:#111827;">Message</div>
+                <div style="font-size:11px;color:#9ca3af;margin-top:1px;">Rédigez votre message de notification</div>
+              </div>
+            </div>
+            <textarea id="notif-msg" rows="4" placeholder="Rédigez votre message ici…" style="width:100%;border:1.5px solid #d1fae5;border-radius:10px;padding:12px 14px;font-size:13px;background:#f8fffe;color:#111827;outline:none;resize:vertical;font-family:inherit;line-height:1.6;box-sizing:border-box;transition:border-color .2s;" onfocus="this.style.borderColor='#0f6e56'" onblur="this.style.borderColor='#d1fae5'"></textarea>
+            <div style="text-align:right;margin-top:6px;font-size:11px;color:#9ca3af;" id="notif-char-count">0 caractère(s)</div>
+          </div>
+
+          <!-- Tips block -->
+          <div style="padding:16px 28px;background:#f8fffe;border-bottom:1px solid #f0faf6;display:flex;gap:18px;flex-wrap:wrap;">
+            <div style="display:flex;align-items:center;gap:7px;font-size:11.5px;color:#6b7280;">
+              <i class="ti ti-info-circle" style="color:#0f6e56;font-size:14px;"></i> Les notifications apparaissent en temps réel pour les utilisateurs connectés.
+            </div>
+          </div>
+
+          <!-- Action block -->
+          <div style="padding:20px 28px;display:flex;justify-content:flex-end;align-items:center;gap:12px;">
+            <button onclick="document.getElementById('notif-msg').value='';document.getElementById('notif-char-count').textContent='0 caractère(s)';" style="background:#f3f4f6;color:#374151;border:none;padding:11px 22px;border-radius:10px;cursor:pointer;font-size:13px;font-weight:600;">
+              Effacer
+            </button>
+            <button id="notif-send-btn" onclick="envoyerNotif(this)" style="background:linear-gradient(135deg,#0f6e56,#1a9e7a);color:#fff;border:none;padding:11px 28px;border-radius:10px;cursor:pointer;font-size:13px;font-weight:700;display:flex;align-items:center;gap:8px;box-shadow:0 3px 12px rgba(15,110,86,.3);transition:opacity .2s;" onmouseover="this.style.opacity='.88'" onmouseout="this.style.opacity='1'">
+              <i class="ti ti-send" style="font-size:15px;"></i> Envoyer la notification
+            </button>
+          </div>
+        </div>
+
+        <!-- Recent notifs placeholder -->
+        <div style="margin-top:20px;background:#fff;border-radius:16px;box-shadow:0 2px 16px rgba(15,110,86,.06);border:1px solid #e6f7f1;padding:20px 28px;">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
+            <i class="ti ti-history" style="color:#0f6e56;font-size:17px;"></i>
+            <span style="font-size:13px;font-weight:700;color:#111827;">Historique récent</span>
+          </div>
+          <div id="notif-history" style="color:#9ca3af;font-size:13px;text-align:center;padding:16px 0;">Aucune notification envoyée.</div>
+        </div>
+        <div style="margin-top:20px;background:#fff;border-radius:16px;border:1px solid #e6f7f1;padding:20px 28px;">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;"><i class="ti ti-activity" style="color:#0f6e56;font-size:17px;"></i><span style="font-size:13px;font-weight:700;">Activité administrateur</span></div>
+          <div id="activity-history" style="color:#9ca3af;font-size:13px;text-align:center;padding:16px 0;">Aucune activité.</div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /main -->
+  <div class="admin-dialog-overlay" id="admin-dialog">
+    <div class="admin-dialog"><h3 id="admin-dialog-title">Confirmation</h3><p id="admin-dialog-message"></p><textarea id="admin-dialog-input" rows="4" style="display:none"></textarea><div class="admin-dialog-actions"><button class="btn-act btn-unban" id="admin-dialog-cancel">Annuler</button><button class="btn-act btn-treat" id="admin-dialog-confirm">Confirmer</button></div></div>
+  </div>
+  `;
+
+  loadStats();
+
+  // Char counter for notif textarea
+  const notifMsg = document.getElementById('notif-msg');
+  const notifCount = document.getElementById('notif-char-count');
+  if (notifMsg && notifCount) {
+    notifMsg.addEventListener('input', () => {
+      const len = notifMsg.value.length;
+      notifCount.textContent = `${len} caractère${len !== 1 ? 's' : ''}`;
+    });
+  }
+}
+
+// ── Navigation ────────────────────────────────────────────────────────────────
+function switchTab(name, el) {
+  document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+  if (el) el.classList.add('active');
+  const titles = { dashboard:'Dashboard', livres:'Livres', users:'Utilisateurs', signals:'Signalements', notifs:'Notifications' };
+  const t = document.getElementById('page-title');
+  if (t) t.textContent = titles[name] || name;
+}
+
+// ── Load stats ────────────────────────────────────────────────────────────────
+const adminState = { users_page: 1, books_page: 1, reports_page: 1 };
+let adminFilterTimer = null;
+
+function scheduleAdminFilter() {
+  clearTimeout(adminFilterTimer);
+  adminFilterTimer = setTimeout(applyAdminFilters, 300);
+}
+function applyAdminFilters() {
+  adminState.users_page = 1;
+  adminState.books_page = 1;
+  adminState.reports_page = 1;
+  loadStats();
+}
+function changeAdminPage(prefix, page) {
+  adminState[`${prefix}_page`] = page;
+  loadStats();
+}
+function adminStatsUrl() {
+  const params = new URLSearchParams();
+  ["users", "books", "reports"].forEach(prefix => {
+    const search = document.getElementById(`${prefix}-search`)?.value?.trim() || "";
+    const statusValue = document.getElementById(`${prefix}-status`)?.value || "";
+    params.set(`${prefix}_page`, adminState[`${prefix}_page`]);
+    if (search) params.set(`${prefix}_q`, search);
+    if (statusValue) params.set(`${prefix}_status`, statusValue);
+  });
+  return `${ENDPOINTS.ADMIN_STATS}?${params.toString()}`;
+}
+function renderPagination(prefix, pageData) {
+  const el = document.getElementById(`${prefix}-pagination`);
+  if (!el || !pageData) return;
+  el.innerHTML = `<span>${pageData.count} résultat(s) · page ${pageData.page}/${Math.max(pageData.pages, 1)}</span>
+    <button ${pageData.has_previous ? "" : "disabled"} onclick="changeAdminPage(\x27${prefix}\x27, ${pageData.page - 1})">Précédent</button>
+    <button ${pageData.has_next ? "" : "disabled"} onclick="changeAdminPage(\x27${prefix}\x27, ${pageData.page + 1})">Suivant</button>`;
+}
+
+async function loadStats() {
+  try {
+    const data = await API.get(adminStatsUrl());
+
+    // Chiffres
+    const nb_livres = data.nb_livres || 0;
+    const nb_dispo  = data.nb_disponibles || 0;
+    const nb_vendus = data.nb_vendus || 0;
+    const nb_arch   = nb_livres - nb_dispo - nb_vendus;
+
+    setText('s-users',    data.nb_utilisateurs ?? 0);
+    setText('s-livres',   nb_livres);
+    setText('s-dispo',    nb_dispo);
+    setText('s-vendus',   nb_vendus);
+    setText('s-commandes',data.nb_commandes ?? 0);
+    setText('s-signals',  data.nb_signalements ?? 0);
+
+    // ── Bar chart ─────────────────────────────────────────────────────────────
+    const chartEl = document.getElementById('chart-statuts');
+    if (chartEl) {
+      const archived = Math.max(nb_arch, 0);
+      const maxV = Math.max(nb_dispo, nb_vendus, archived, 1);
+      const bar = (v, color, label) => `
+        <div class="bar-col">
+          <div class="bar-val-lbl">${v}</div>
+          <div class="bar" style="height:${Math.max(8, Math.round((v/maxV)*88))}px;background:${color};max-width:68px;"></div>
+          <div class="bar-name">${label}</div>
+        </div>`;
+      chartEl.innerHTML = nb_livres === 0
+        ? `<div style="grid-column:1/-1;align-self:center;text-align:center;color:#9ca3af;font-size:13px;">Aucun livre à afficher.</div>`
+        : bar(nb_dispo,  "#5dcaa5", "Disponibles") +
+          bar(nb_vendus, "#0f6e56", "Vendus") +
+          bar(archived, "#fac775", "Archivés");
+    }
+
+    // ── Donut chart ───────────────────────────────────────────────────────────
+    const total = nb_dispo + nb_vendus + (nb_arch < 0 ? 0 : nb_arch) || 1;
+    const circ  = 2 * Math.PI * 50; // r=50
+    function arc(val, offset, color) {
+      const dash = (val / total) * circ;
+      return `<circle cx="65" cy="65" r="50" fill="none" stroke="${color}" stroke-width="24"
+        stroke-dasharray="${dash.toFixed(1)} ${circ.toFixed(1)}"
+        stroke-dashoffset="${(-offset).toFixed(1)}"
+        transform="rotate(-90 65 65)"/>`;
+    }
+    const dOffset = 0;
+    const vOffset = (nb_dispo / total) * circ;
+    const aOffset = vOffset + (nb_vendus / total) * circ;
+    const donutSvg = document.getElementById('donut-svg');
+    if (donutSvg) {
+      donutSvg.innerHTML = `
+        <circle cx="65" cy="65" r="50" fill="none" stroke="#e1f5ee" stroke-width="24"/>
+        ${arc(nb_dispo,  dOffset, '#5dcaa5')}
+        ${arc(nb_vendus, vOffset, '#0f6e56')}
+        ${arc(nb_arch < 0 ? 0 : nb_arch, aOffset, '#fac775')}
+        <text x="65" y="61" text-anchor="middle" font-size="20" font-weight="700" fill="#0f6e56">${nb_livres}</text>
+        <text x="65" y="77" text-anchor="middle" font-size="11" fill="#6b7280">livres</text>`;
+    }
+    const legend = document.getElementById('donut-legend');
+    if (legend) {
+      legend.innerHTML = [
+        { c:'#5dcaa5', l:'Disponibles', v: nb_dispo },
+        { c:'#0f6e56', l:'Vendus',      v: nb_vendus },
+        { c:'#fac775', l:'Archivés',    v: nb_arch < 0 ? 0 : nb_arch },
+      ].map(e => `
+        <div class="legend-item">
+          <div class="legend-dot" style="background:${e.c};"></div>
+          <span>${e.l}</span>
+          <strong style="margin-left:auto;color:#0f6e56;">${e.v}</strong>
+        </div>`).join('') + `
+        <div style="margin-top:6px;padding-top:6px;border-top:0.5px solid #e1f5ee;font-size:10px;color:#9ca3af;">
+          Données en temps réel
+        </div>`;
+    }
+
+    // ── Etat physique chart ───────────────────────────────────────────────────
+    const etatChartEl = document.getElementById('chart-etat');
+    if (etatChartEl) {
+      const nb_neuf  = data.nb_neuf  || 0;
+      const nb_bon   = data.nb_bon   || 0;
+      const nb_usage = data.nb_usage || 0;
+      const maxE = Math.max(nb_neuf, nb_bon, nb_usage, 1);
+      const smallBar = (v, color, label) => `
+        <div class="bar-col">
+          <div class="bar-val-lbl">${v}</div>
+          <div class="bar" style="height:${Math.max(8, Math.round((v/maxE)*88))}px;background:${color};max-width:68px;"></div>
+          <div class="bar-name">${label}</div>
+        </div>`;
+      etatChartEl.innerHTML = nb_livres === 0
+        ? `<div style="grid-column:1/-1;align-self:center;text-align:center;color:#9ca3af;font-size:13px;">Aucune donnée sur l’état des livres.</div>`
+        : smallBar(nb_neuf,  "#5dcaa5", "Neuf") +
+          smallBar(nb_bon,   "#4f9cf7", "Bon état") +
+          smallBar(nb_usage, "#f97b6b", "Usagé");
+    }
+
+    // ── Dash livres table ──────────────────────────────────────────────────────
+    const latestLivres = data.derniers_livres || [];
+    const allLivres = data.books_page?.results || latestLivres;
+    renderTableBody("dash-livres", latestLivres, livreTr);
+    renderTableBody("all-livres-tbody", allLivres, livreTrFull);
+
+    // ── Users tables ───────────────────────────────────────────────────────────
+    const latestUsers = (data.derniers_users || []).filter(u => !u.est_administrateur);
+    const allUsers = (data.users_page?.results || latestUsers).filter(u => !u.est_administrateur);
+    renderTableBody("dash-users", latestUsers, userTrDash);
+    renderTableBody("all-users-tbody", allUsers, userTrFull);
+    // Remplir select notif (tous sauf admin)
+    const sel = document.getElementById('notif-target');
+    if (sel) {
+      sel.innerHTML = '<option value="all">Tous les utilisateurs</option>';
+      (data.notification_recipients || allUsers).forEach(u => {
+        const o = document.createElement('option');
+        o.value       = u.id;
+        o.textContent = `${u.prenom||''} ${u.nom||''} (${u.username})`.trim();
+        sel.appendChild(o);
+      });
+    }
+
+    // ── Signals ────────────────────────────────────────────────────────────────
+    const signals = data.reports_page?.results || data.derniers_signalements || [];
+    renderTableBody("all-signals-tbody", signals, signalTr);
+    renderPagination("books", data.books_page);
+    renderPagination("users", data.users_page);
+    renderPagination("reports", data.reports_page);
+    renderNotificationHistory(data.notification_history || []);
+    renderActivityHistory(data.activity_log || []);
+
+  } catch (e) {
+    showToast(e.status === 403 ? 'Accès administrateur refusé.' : 'Impossible de charger les données administrateur.', 'error');
+  }
+}
+
+// ── Row renderers ─────────────────────────────────────────────────────────────
+function statBadge(s) {
+  const map = { DISPONIBLE:'badge-green', VENDU:'badge-amber', ARCHIVEE:'badge-gray' };
+  const lbl = { DISPONIBLE:'Disponible', VENDU:'Vendu', ARCHIVEE:'Archivé' };
+  return `<span class="badge ${map[s]||'badge-gray'}">${lbl[s]||s}</span>`;
+}
+
+function livreTr(l) {
+  const v = `${l.vendeur?.prenom||""} ${l.vendeur?.nom||""}`.trim() || l.vendeur?.username || "—";
+  return `<tr>
+    <td><a href="/catalogue/detail/?id=${l.id}" target="_blank" style="color:#0f6e56;font-weight:600;">${l.titre}</a></td>
+    <td>${v}</td><td>${statBadge(l.statut)}</td>
+    <td><button class="btn-act btn-del" onclick="adminDelLivre(${l.id}, this)"><i class="ti ti-trash"></i></button></td>
+  </tr>`;
+}
+
+function livreTrFull(l) {
+  const v = `${l.vendeur?.prenom||""} ${l.vendeur?.nom||""}`.trim() || l.vendeur?.username || "—";
+  const date = l.date_creation ? new Date(l.date_creation).toLocaleDateString("fr-FR") : "—";
+  return `<tr>
+    <td>#${l.id}</td><td><a href="/catalogue/detail/?id=${l.id}" target="_blank" style="color:#0f6e56;font-weight:600;">${l.titre}</a></td>
+    <td>${v}</td><td>${l.matiere||"—"}</td><td><strong>${formatPrice(l.prix)}</strong></td><td>${statBadge(l.statut)}</td><td>${date}</td>
+    <td><button class="btn-act btn-del" onclick="adminDelLivre(${l.id}, this)"><i class="ti ti-trash"></i> Supprimer</button></td>
+  </tr>`;
+}
+
+function userTrDash(u) {
+  const nom = `${u.prenom||""} ${u.nom||""}`.trim() || "—";
+  const banAction = u.est_banni
+    ? `<button class="btn-act btn-unban" onclick="adminBan(${u.id}, false, this)"><i class="ti ti-lock-open"></i> Débannir</button>`
+    : `<button class="btn-act btn-ban" onclick="adminBan(${u.id}, true, this)"><i class="ti ti-lock"></i> Bannir</button>`;
+  return `<tr><td><strong>${u.username}</strong></td><td>${nom}</td><td style="display:flex;gap:6px;flex-wrap:wrap;">${banAction}<button class="btn-act btn-del" onclick="adminDelUser(${u.id}, this)"><i class="ti ti-trash"></i></button></td></tr>`;
+}
+
+function userTrFull(u) {
+  const nom = `${u.prenom||""} ${u.nom||""}`.trim() || "—";
+  const banAction = u.est_banni
+    ? `<button class="btn-act btn-unban" onclick="adminBan(${u.id}, false, this)"><i class="ti ti-lock-open"></i> Débannir</button>`
+    : `<button class="btn-act btn-ban" onclick="adminBan(${u.id}, true, this)"><i class="ti ti-lock"></i> Bannir</button>`;
+  return `<tr>
+    <td>#${u.id}</td><td><strong>${u.username}</strong></td><td>${nom}</td><td>${u.email||"—"}</td>
+    <td><span class="badge ${u.est_banni ? "badge-red" : "badge-green"}">${u.est_banni ? "Banni" : "Actif"}</span></td>
+    <td style="display:flex;gap:6px;flex-wrap:wrap;">${banAction}<button class="btn-act btn-del" onclick="adminDelUser(${u.id}, this)"><i class="ti ti-trash"></i> Supprimer</button></td>
+  </tr>`;
+}
+
+function signalTr(s) {
+  const statusMap = {
+    'PENDING':  { label: 'En attente',  cls: 'badge-red' },
+    'ACCEPTED': { label: 'Accepté',     cls: 'badge-green' },
+    'REJECTED': { label: 'Rejeté',      cls: 'badge-gray' },
+    // Legacy fallback
+    'En attente': { label: 'En attente', cls: 'badge-red' },
+    'Traité':     { label: 'Traité',     cls: 'badge-green' },
+  };
+  const st = statusMap[s.statut] || { label: s.statut, cls: 'badge-gray' };
+  const isPending = s.statut === 'PENDING' || s.statut === 'En attente';
+  return `<tr>
+    <td style="color:#9ca3af;font-size:11px;">#${s.id}</td>
+    <td>${s.signaleur?.username||'—'}</td>
+    <td>${s.livre_signale
+      ? `<a href="/catalogue/detail/?id=${s.livre_signale}" target="_blank" style="color:#0f6e56;">Livre #${s.livre_signale}</a>`
+      : '—'}</td>
+    <td style="max-width:220px;font-size:12px;">${s.raison}</td>
+    <td><span class="badge ${st.cls}">${st.label}</span></td>
+    <td style="display:flex;gap:6px;flex-wrap:wrap;">${isPending
+      ? `<button class="btn-act btn-treat" onclick="adminAccepterSignal(${s.id}, this)" title="Accepter"><i class="ti ti-check" style="font-size:12px;"></i> Accepter</button>
+         <button class="btn-act btn-del" onclick="adminRefuserSignal(${s.id}, this)" title="Refuser"><i class="ti ti-x" style="font-size:12px;"></i> Refuser</button>`
+      : `<small style="color:#9ca3af;">${s.message_admin ? '💬 ' + s.message_admin.slice(0,40) : '—'}</small>`}</td>
+  </tr>`;
+}
+
+function renderTableBody(id, arr, rowFn) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.innerHTML = arr.length
+    ? arr.map(rowFn).join('')
+    : `<tr><td colspan="8" style="text-align:center;color:#9ca3af;padding:24px;">Aucune donnée.</td></tr>`;
+}
+
+function renderNotificationHistory(items) {
+  const el = document.getElementById("notif-history");
+  if (!el) return;
+  el.style.textAlign = items.length ? "left" : "center";
+  el.innerHTML = items.length ? items.map(item => `
+    <div class="activity-item"><strong>${item.recipient}</strong><div>${item.content}</div><small>${new Date(item.created_at).toLocaleString("fr-FR")}</small></div>`).join("") : "Aucune notification envoyée.";
+}
+
+function renderActivityHistory(items) {
+  const el = document.getElementById("activity-history");
+  if (!el) return;
+  el.style.textAlign = items.length ? "left" : "center";
+  el.innerHTML = items.length ? items.map(item => `
+    <div class="activity-item"><strong>${item.admin}</strong> · ${item.message || item.object}<br><small>${new Date(item.created_at).toLocaleString("fr-FR")}</small></div>`).join("") : "Aucune activité.";
+}
+
+function setText(id, v) {
+  const el = document.getElementById(id);
+  if (el) el.textContent = v;
+}
+
+// ── Actions ───────────────────────────────────────────────────────────────────
+function adminDialog(options) {
+  const title = options.title || "Confirmation";
+  const message = options.message;
+  const input = Boolean(options.input);
+  const overlay = document.getElementById("admin-dialog");
+  const inputEl = document.getElementById("admin-dialog-input");
+  document.getElementById("admin-dialog-title").textContent = title;
+  document.getElementById("admin-dialog-message").textContent = message;
+  inputEl.style.display = input ? "block" : "none";
+  inputEl.value = "";
+  overlay.classList.add("active");
+  if (input) setTimeout(function() { inputEl.focus(); }, 0);
+  return new Promise(function(resolve) {
+    const confirmBtn = document.getElementById("admin-dialog-confirm");
+    const cancelBtn = document.getElementById("admin-dialog-cancel");
+    function finish(value) {
+      overlay.classList.remove("active");
+      confirmBtn.onclick = null;
+      cancelBtn.onclick = null;
+      resolve(value);
+    }
+    confirmBtn.onclick = function() { finish(input ? inputEl.value.trim() : true); };
+    cancelBtn.onclick = function() { finish(input ? null : false); };
+  });
+}
+
+async function runAdminAction(button, task) {
+  const original = button ? button.innerHTML : "";
+  if (button) {
+    button.disabled = true;
+    button.innerHTML = "Traitement...";
+  }
+  try { return await task(); }
+  finally {
+    if (button && document.body.contains(button)) {
+      button.disabled = false;
+      button.innerHTML = original;
+    }
+  }
+}
+
+async function adminDelLivre(id, button) {
+  const confirmed = await adminDialog({ message: "Supprimer définitivement ce livre ?" });
+  if (!confirmed) return;
+  try {
+    await runAdminAction(button, () => API.delete(ENDPOINTS.ADMIN_DEL_LIVRE(id)));
+    showToast("Livre supprimé.", "success");
+    loadStats();
+  } catch (e) { showToast(e.message || "Erreur lors de la suppression du livre.", "error"); }
+}
+
+async function adminBan(id, banni, button) {
+  try {
+    await runAdminAction(button, () => API.patch(ENDPOINTS.ADMIN_BAN(id), { est_banni: banni }));
+    showToast(banni ? "Utilisateur banni." : "Utilisateur débanni.", "success");
+    loadStats();
+  } catch (e) { showToast(e.message || "Impossible de modifier le statut utilisateur.", "error"); }
+}
+
+async function adminDelUser(id, button) {
+  const confirmed = await adminDialog({ message: "Supprimer définitivement cet utilisateur et ses données non protégées ?" });
+  if (!confirmed) return;
+  try {
+    await runAdminAction(button, () => API.delete(ENDPOINTS.ADMIN_DEL_USER(id)));
+    showToast("Utilisateur supprimé.", "success");
+    loadStats();
+  } catch (e) { showToast(e.message || "Impossible de supprimer cet utilisateur.", "error"); }
+}
+
+async function adminAccepterSignal(id, button) {
+  const confirmed = await adminDialog({ message: "Accepter ce signalement ? Le livre sera retiré du catalogue et le vendeur sera notifié." });
+  if (!confirmed) return;
+  try {
+    await runAdminAction(button, () => API.post(`${CONFIG.API_URL}/signalements/${id}/accepter/`, {}));
+    showToast("Signalement accepté. Le livre a été retiré et le vendeur notifié.", "success");
+    loadStats();
+  } catch (e) { showToast(e.message || "Impossible de traiter ce signalement.", "error"); }
+}
+
+async function adminRefuserSignal(id, button) {
+  const message = await adminDialog({ title: "Refuser le signalement", message: "Expliquez la raison au signaleur.", input: true });
+  if (!message) return;
+  try {
+    await runAdminAction(button, () => API.post(`${CONFIG.API_URL}/signalements/${id}/refuser/`, { message }));
+    showToast("Signalement refusé et signaleur notifié.", "success");
+    loadStats();
+  } catch (e) { showToast(e.message || "Impossible de refuser ce signalement.", "error"); }
+}
+
+async function adminTraiter(id) {
+  await adminAccepterSignal(id);
+}
+
+async function envoyerNotif(button) {
+  const target = document.getElementById('notif-target')?.value || 'all';
+  const msgEl  = document.getElementById('notif-msg');
+  const msg    = msgEl?.value?.trim();
+  if (!msg) { showToast('Veuillez écrire un message', 'error'); return; }
+  try {
+    const res = await runAdminAction(button, () => API.post(ENDPOINTS.ADMIN_NOTIF, { user_id: target, contenu: msg }));
+    showToast(res.detail || '✅ Notification envoyée !', 'success');
+    msgEl.value = "";
+    loadStats();
+    const cntEl = document.getElementById('notif-char-count');
+    if (cntEl) cntEl.textContent = '0 caractère(s)';
+  } catch (e) { showToast(e.message || 'Erreur', 'error'); }
+}
+
+// ── Utility ───────────────────────────────────────────────────────────────────
+function formatPrice(p) {
+  if (!p && p !== 0) return '—';
+  return parseFloat(p) === 0 ? 'Gratuit' : `${parseFloat(p).toLocaleString('fr-FR')} DH`;
+}
+
+// ── Init ──────────────────────────────────────────────────────────────────────
+isAdmin() ? renderPanel() : renderLogin();
+</script>
+</body>
+</html>

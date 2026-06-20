@@ -1,0 +1,129 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" type="image/png" href="{% static 'web/images/logo-emsi.png' %}">
+  <title>Mon accueil — Bourse aux Livres EMSI</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{% static 'web/css/style.css' %}" />
+  <style>
+    .dashboard-main { padding-top: 48px; padding-bottom: 80px; }
+    .welcome-card { background: linear-gradient(120deg, #116b55, #1b9875); color: #fff; border-radius: 16px; padding: clamp(34px, 4vw, 56px); display: flex; justify-content: space-between; align-items: center; gap: 32px; margin-bottom: 36px; box-shadow: 0 14px 38px rgba(15, 110, 86, .14); }
+    .welcome-card h1 { font-size: clamp(30px, 3vw, 42px); margin-bottom: 10px; }
+    .welcome-card p { color: rgba(255,255,255,.82); max-width: 720px; font-size: 16px; }
+    .dashboard-actions { display: flex; gap: 14px; flex-wrap: wrap; }
+    .dashboard-actions .btn { background: #fff; color: #0f6e56; border-color: #fff; }
+    .dashboard-actions .btn:last-child { background: transparent; color: #fff; }
+    .dashboard-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; margin-bottom: 44px; }
+    .dashboard-stat { background: #fff; border: 0; border-radius: 14px; padding: 28px 30px; box-shadow: 0 8px 28px rgba(15, 23, 42, .06); transition: transform .2s ease, box-shadow .2s ease; }
+    .dashboard-stat:hover { transform: translateY(-3px); box-shadow: 0 14px 34px rgba(15, 23, 42, .09); }
+    .dashboard-stat strong { display: block; color: var(--primary); font-size: 30px; margin-bottom: 4px; }
+    .dashboard-stat span { color: var(--gray-500); font-size: 14px; }
+    .dashboard-section-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
+    .dashboard-section-head h2 { font-size: 22px; }
+    .dashboard-error { grid-column: 1 / -1; padding: 28px; text-align: center; color: var(--gray-500); background: #fff; border-radius: 14px; }
+    @media (max-width: 800px) {
+      .welcome-card { align-items: flex-start; flex-direction: column; }
+      .dashboard-stats { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body style="background:var(--gray-50)">
+  {{ frontend_user|json_script:"django-user-data" }}
+  <script>window.DJANGO_USER = JSON.parse(document.getElementById('django-user-data').textContent);</script>
+  <div id="header-mount"></div>
+
+  <main class="container dashboard-main">
+    <section class="welcome-card">
+      <div>
+        <h1>Bonjour <span id="welcome-name"></span></h1>
+        <p>Retrouvez vos activités et découvrez les derniers livres publiés par la communauté EMSI.</p>
+      </div>
+      <div class="dashboard-actions">
+        <a href="/vendre/" class="btn">Publier un livre</a>
+        <a href="/catalogue/" class="btn btn-outline">Explorer le catalogue</a>
+      </div>
+    </section>
+
+    <section class="dashboard-stats">
+      <a href="/profil/" class="dashboard-stat" style="text-decoration:none;color:inherit">
+        <strong id="stat-books">0</strong>
+        <span>Livres publiés</span>
+      </a>
+      <a href="/profil/#ventes" class="dashboard-stat" style="text-decoration:none;color:inherit">
+        <strong id="stat-sales">0</strong>
+        <span>Ventes</span>
+      </a>
+      <a href="/commandes/" class="dashboard-stat" style="text-decoration:none;color:inherit">
+        <strong id="stat-orders">0</strong>
+        <span>Achats</span>
+      </a>
+    </section>
+
+    <section>
+      <div class="dashboard-section-head">
+        <h2>Nouveautés</h2>
+        <a href="/catalogue/" class="btn btn-outline">Voir tout</a>
+      </div>
+      <div class="book-grid" id="recent-books">
+        <div class="dashboard-error">Chargement…</div>
+      </div>
+    </section>
+  </main>
+
+  <script src="{% static 'web/js/config.js' %}"></script>
+  <script src="{% static 'web/js/api.js' %}"></script>
+  <script src="{% static 'web/js/main.js' %}"></script>
+  <script src="{% static 'web/js/header.js' %}"></script>
+  <script>
+    injectConnectedHeader('dashboard');
+
+    const currentUser = Auth.getUser() || window.DJANGO_USER;
+    document.getElementById('welcome-name').textContent = currentUser?.prenom || currentUser?.username || '';
+
+    function renderRecentBooks(books) {
+      const grid = document.getElementById('recent-books');
+      if (!books.length) {
+        grid.innerHTML = '<div class="dashboard-error">Aucun livre disponible pour le moment.</div>';
+        return;
+      }
+      grid.innerHTML = books.slice(0, 4).map(book => {
+        const image = book.images?.[0];
+        const imageUrl = resolveImg(image);
+        return `
+          <a href="/catalogue/detail/?id=${book.id}" class="book-card" style="text-decoration:none;color:inherit">
+            <div class="book-image">
+              ${imageUrl ? `<img src="${imageUrl}" alt="${book.titre}" style="width:100%;height:100%;object-fit:cover">` : '<div class="book-cover-placeholder">📚</div>'}
+            </div>
+            <div class="book-info">
+              <div class="book-title">${book.titre}</div>
+              <div class="book-author">${book.auteur || ''}</div>
+              <div class="book-price">${formatPrice(book.prix)}</div>
+            </div>
+          </a>`;
+      }).join('');
+    }
+
+    async function loadDashboard() {
+      const grid = document.getElementById('recent-books');
+      try {
+        const [stats, booksData] = await Promise.all([
+          API.get(ENDPOINTS.PROFILE_STATS),
+          API.get(ENDPOINTS.LIVRES),
+        ]);
+        document.getElementById('stat-books').textContent = stats.nb_livres_publies || 0;
+        document.getElementById('stat-sales').textContent = stats.nb_ventes || 0;
+        document.getElementById('stat-orders').textContent = stats.nb_achats || 0;
+        renderRecentBooks(Array.isArray(booksData) ? booksData : (booksData.results || []));
+      } catch (error) {
+        grid.innerHTML = '<div class="dashboard-error">Impossible de charger les données. Veuillez actualiser la page.</div>';
+      }
+    }
+
+    loadDashboard();
+  </script>
+</body>
+</html>

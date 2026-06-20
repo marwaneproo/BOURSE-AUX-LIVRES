@@ -1,0 +1,1307 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" type="image/png" href="{% static 'web/images/logo-emsi.png' %}">
+  <title>Detail — Bourse aux Livres EMSI</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{% static 'web/css/style.css' %}">
+  <style>
+    :root {
+      --primary: #2563eb;
+      --primary-dark: #1d4ed8;
+      --primary-light: #dbeafe;
+      --secondary: #f59e0b;
+      --secondary-light: #fef3c7;
+      --danger: #dc2626;
+      --danger-light: #fee2e2;
+      --success: #16a34a;
+      --success-light: #dcfce7;
+      --gray-50: #f8fafc;
+      --gray-100: #f1f5f9;
+      --gray-200: #e2e8f0;
+      --gray-300: #cbd5e1;
+      --gray-400: #94a3b8;
+      --gray-500: #64748b;
+      --gray-600: #475569;
+      --gray-700: #334155;
+      --gray-800: #1e293b;
+      --gray-900: #0f172a;
+      --radius: 12px;
+      --radius-lg: 16px;
+      --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+      --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+      --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+      --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+      --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--gray-50);
+      color: var(--gray-800);
+      line-height: 1.6;
+      margin: 0;
+    }
+
+    .detail-wrapper {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 32px clamp(24px, 3vw, 48px) 64px;
+    }
+
+    .detail-breadcrumb {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      color: var(--gray-500);
+      margin-bottom: 20px;
+    }
+    .detail-breadcrumb a {
+      color: var(--gray-500);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+    .detail-breadcrumb a:hover { color: var(--primary); }
+    .detail-breadcrumb .sep { color: var(--gray-300); }
+
+    .detail-grid {
+      display: grid;
+      grid-template-columns: 1fr 1.2fr;
+      gap: clamp(40px, 4vw, 64px);
+      align-items: start;
+    }
+
+    @media (max-width: 900px) {
+      .detail-grid {
+        grid-template-columns: 1fr;
+        gap: 24px;
+      }
+    }
+
+    .gallery-section {
+      position: sticky;
+      top: 24px;
+    }
+
+    .main-image-wrapper {
+      background: #fff;
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--gray-200);
+      overflow: hidden;
+      aspect-ratio: 4/3;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      box-shadow: var(--shadow-md);
+      transition: box-shadow 0.3s;
+    }
+    .main-image-wrapper:hover { box-shadow: var(--shadow-lg); }
+
+    .main-image-wrapper img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform 0.4s ease;
+    }
+    .main-image-wrapper:hover img { transform: scale(1.03); }
+
+    .main-image-placeholder {
+      font-size: 100px;
+      opacity: 0.15;
+    }
+
+    .image-badge {
+      position: absolute;
+      top: 16px;
+      left: 16px;
+      background: rgba(0,0,0,0.7);
+      color: #fff;
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+      backdrop-filter: blur(4px);
+    }
+
+    .thumbs-row {
+      display: flex;
+      gap: 10px;
+      margin-top: 16px;
+      overflow-x: auto;
+      padding-bottom: 4px;
+    }
+
+    .thumb-box {
+      width: 72px;
+      height: 72px;
+      border-radius: 10px;
+      border: 2px solid transparent;
+      overflow: hidden;
+      cursor: pointer;
+      flex-shrink: 0;
+      transition: all 0.2s;
+      background: #fff;
+      box-shadow: var(--shadow-sm);
+    }
+    .thumb-box:hover { border-color: var(--gray-300); transform: translateY(-2px); }
+    .thumb-box.active {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px var(--primary-light);
+    }
+    .thumb-box img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .info-section {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .info-header {
+      background: #fff;
+      border-radius: var(--radius-lg);
+      padding: 28px;
+      border: 1px solid var(--gray-200);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .book-state-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 16px;
+    }
+    .book-state-badge.neuf {
+      background: var(--success-light);
+      color: var(--success);
+    }
+    .book-state-badge.bon {
+      background: var(--secondary-light);
+      color: #b45309;
+    }
+    .book-state-badge.usage {
+      background: var(--gray-100);
+      color: var(--gray-600);
+    }
+    .book-state-badge.vendu {
+      background: var(--danger-light);
+      color: var(--danger);
+    }
+
+    .book-title {
+      font-size: 28px;
+      font-weight: 800;
+      color: var(--gray-900);
+      line-height: 1.25;
+      margin: 0 0 12px 0;
+    }
+
+    .book-meta-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px 16px;
+      font-size: 14px;
+      color: var(--gray-500);
+      margin-bottom: 20px;
+    }
+    .book-meta-row span {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .book-meta-row .dot {
+      width: 4px;
+      height: 4px;
+      background: var(--gray-300);
+      border-radius: 50%;
+    }
+
+    .book-price-block {
+      display: flex;
+      align-items: baseline;
+      gap: 12px;
+      margin-bottom: 20px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid var(--gray-100);
+    }
+    .book-price {
+      font-size: 36px;
+      font-weight: 800;
+      color: var(--primary);
+      letter-spacing: -1px;
+    }
+    .book-price-note {
+      font-size: 13px;
+      color: var(--gray-500);
+      margin-left: auto;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .book-description {
+      font-size: 15px;
+      color: var(--gray-600);
+      line-height: 1.7;
+    }
+
+    .seller-card {
+      background: #fff;
+      border-radius: var(--radius-lg);
+      padding: 20px 24px;
+      border: 1px solid var(--gray-200);
+      box-shadow: var(--shadow-sm);
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      transition: box-shadow 0.3s, transform 0.3s;
+    }
+    .seller-card:hover {
+      box-shadow: var(--shadow-md);
+      transform: translateY(-1px);
+    }
+
+    .seller-avatar {
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--primary), #7c3aed);
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 18px;
+      flex-shrink: 0;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .seller-info { flex: 1; min-width: 0; }
+    .seller-name {
+      font-weight: 700;
+      font-size: 16px;
+      color: var(--gray-900);
+      margin-bottom: 4px;
+    }
+    .seller-rating {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+    }
+    .seller-stars {
+      display: flex;
+      gap: 2px;
+      color: var(--secondary);
+      font-size: 15px;
+    }
+    .seller-rating-text { color: var(--gray-500); }
+    .seller-rating-count {
+      color: var(--gray-400);
+      font-size: 13px;
+    }
+
+    .btn-voir-profil {
+      padding: 10px 20px;
+      border-radius: 10px;
+      border: 1px solid var(--gray-200);
+      background: #fff;
+      color: var(--gray-700);
+      font-weight: 600;
+      font-size: 13px;
+      cursor: pointer;
+      transition: all 0.2s;
+      white-space: nowrap;
+    }
+    .btn-voir-profil:hover {
+      border-color: var(--primary);
+      color: var(--primary);
+      background: var(--primary-light);
+    }
+
+    .actions-card {
+      background: #fff;
+      border-radius: var(--radius-lg);
+      padding: 24px;
+      border: 1px solid var(--gray-200);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .actions-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    .actions-grid .btn-full { grid-column: 1 / -1; }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 14px 20px;
+      border-radius: 12px;
+      font-weight: 600;
+      font-size: 15px;
+      cursor: pointer;
+      border: none;
+      transition: all 0.2s;
+      text-decoration: none;
+      font-family: inherit;
+    }
+    .btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+      color: #fff;
+      box-shadow: 0 4px 14px rgba(37, 99, 235, 0.3);
+    }
+    .btn-primary:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(37, 99, 235, 0.4);
+    }
+    .btn-primary:active:not(:disabled) { transform: translateY(0); }
+
+    .btn-outline {
+      background: #fff;
+      color: var(--gray-700);
+      border: 2px solid var(--gray-200);
+    }
+    .btn-outline:hover:not(:disabled) {
+      border-color: var(--primary);
+      color: var(--primary);
+      background: var(--primary-light);
+    }
+
+    .btn-favori {
+      background: #fff;
+      color: var(--gray-600);
+      border: 2px solid var(--gray-200);
+      transition: all 0.3s;
+    }
+    .btn-favori:hover:not(:disabled) {
+      border-color: #ef4444;
+      color: #ef4444;
+      background: #fef2f2;
+    }
+    .btn-favori.active {
+      background: linear-gradient(135deg, #ef4444, #dc2626);
+      color: #fff;
+      border-color: #ef4444;
+      box-shadow: 0 4px 14px rgba(239, 68, 68, 0.3);
+    }
+    .btn-favori.active:hover {
+      background: linear-gradient(135deg, #dc2626, #b91c1c);
+      box-shadow: 0 6px 20px rgba(239, 68, 68, 0.4);
+    }
+
+    .btn-signaler {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 18px;
+      border-radius: 10px;
+      border: 1px solid var(--gray-200);
+      background: #fff;
+      color: var(--gray-500);
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-family: inherit;
+    }
+    .btn-signaler:hover {
+      border-color: var(--danger);
+      color: var(--danger);
+      background: var(--danger-light);
+    }
+
+    .btn-block { width: 100%; }
+    .btn-lg { padding: 16px 24px; font-size: 16px; }
+
+    .actions-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-top: 16px;
+      border-top: 1px solid var(--gray-100);
+    }
+
+    .trust-badges {
+      display: flex;
+      gap: 16px;
+      margin-top: 16px;
+      padding-top: 16px;
+      border-top: 1px solid var(--gray-100);
+    }
+    .trust-badge {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 13px;
+      color: var(--gray-500);
+    }
+    .trust-badge svg {
+      width: 18px;
+      height: 18px;
+      color: var(--success);
+    }
+
+    .evaluations-section {
+      background: #fff;
+      border-radius: var(--radius-lg);
+      padding: 28px;
+      border: 1px solid var(--gray-200);
+      box-shadow: var(--shadow-sm);
+      margin-top: 8px;
+    }
+
+    .section-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+    }
+    .section-title {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--gray-900);
+      margin: 0;
+    }
+    .section-count {
+      background: var(--gray-100);
+      color: var(--gray-600);
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    .eval-card {
+      padding: 20px;
+      border-radius: var(--radius);
+      border: 1px solid var(--gray-100);
+      background: var(--gray-50);
+      margin-bottom: 12px;
+      transition: all 0.2s;
+    }
+    .eval-card:hover {
+      border-color: var(--gray-200);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .eval-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 10px;
+    }
+    .eval-avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #6366f1, #8b5cf6);
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 600;
+      font-size: 14px;
+      flex-shrink: 0;
+    }
+    .eval-meta { flex: 1; }
+    .eval-author {
+      font-weight: 600;
+      font-size: 14px;
+      color: var(--gray-800);
+    }
+    .eval-stars {
+      display: flex;
+      gap: 2px;
+      color: var(--secondary);
+      font-size: 14px;
+      margin-top: 2px;
+    }
+    .eval-date {
+      font-size: 12px;
+      color: var(--gray-400);
+      margin-left: auto;
+      white-space: nowrap;
+    }
+    .eval-text {
+      font-size: 14px;
+      color: var(--gray-600);
+      line-height: 1.6;
+      margin: 0;
+      padding-left: 52px;
+    }
+
+    .eval-empty {
+      text-align: center;
+      padding: 40px 20px;
+      color: var(--gray-400);
+    }
+    .eval-empty-icon {
+      font-size: 48px;
+      margin-bottom: 12px;
+      opacity: 0.3;
+    }
+
+    .eval-form-box {
+      background: linear-gradient(135deg, #f8fafc, #f1f5f9);
+      border-radius: var(--radius);
+      padding: 24px;
+      margin-top: 20px;
+      border: 1px solid var(--gray-200);
+    }
+    .eval-form-title {
+      font-size: 16px;
+      font-weight: 700;
+      margin-bottom: 16px;
+      color: var(--gray-800);
+    }
+
+    .star-rating {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 16px;
+    }
+    .star-rating .star {
+      font-size: 32px;
+      cursor: pointer;
+      color: var(--gray-300);
+      transition: all 0.15s;
+      line-height: 1;
+      user-select: none;
+    }
+    .star-rating .star:hover { transform: scale(1.2); }
+    .star-rating .star.active { color: var(--secondary); }
+    .star-rating .star.hovered { color: #fcd34d; }
+
+    .form-control {
+      width: 100%;
+      padding: 12px 16px;
+      border: 2px solid var(--gray-200);
+      border-radius: 10px;
+      font-family: inherit;
+      font-size: 14px;
+      color: var(--gray-800);
+      background: #fff;
+      transition: all 0.2s;
+      resize: vertical;
+    }
+    .form-control:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px var(--primary-light);
+    }
+    .form-control::placeholder { color: var(--gray-400); }
+
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.6);
+      backdrop-filter: blur(4px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      padding: 20px;
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+    .modal-overlay.active {
+      display: flex;
+      opacity: 1;
+    }
+
+    .modal {
+      background: #fff;
+      border-radius: var(--radius-lg);
+      width: 100%;
+      max-width: 520px;
+      max-height: 90vh;
+      overflow-y: auto;
+      padding: 32px;
+      position: relative;
+      box-shadow: var(--shadow-xl);
+      transform: scale(0.95);
+      transition: transform 0.3s;
+    }
+    .modal-overlay.active .modal { transform: scale(1); }
+    .modal.lg { max-width: 600px; }
+
+    .modal-close {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      border: none;
+      background: var(--gray-100);
+      color: var(--gray-500);
+      font-size: 20px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+    }
+    .modal-close:hover {
+      background: var(--gray-200);
+      color: var(--gray-800);
+    }
+
+    .modal-title {
+      font-size: 22px;
+      font-weight: 800;
+      margin: 0 0 8px 0;
+      color: var(--gray-900);
+    }
+    .modal-subtitle {
+      color: var(--gray-500);
+      font-size: 14px;
+      margin-bottom: 24px;
+    }
+
+    .form-group { margin-bottom: 20px; }
+    .form-group label {
+      display: block;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--gray-700);
+      margin-bottom: 8px;
+    }
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    .recap-box {
+      background: var(--gray-50);
+      border-radius: var(--radius);
+      padding: 20px;
+      margin: 20px 0;
+      border: 1px solid var(--gray-200);
+    }
+    .recap-line {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+      font-size: 14px;
+      color: var(--gray-600);
+    }
+    .recap-line:last-child { margin-bottom: 0; }
+    .recap-total {
+      font-size: 20px;
+      font-weight: 800;
+      color: var(--primary);
+    }
+
+    .toast-container {
+      position: fixed;
+      top: 24px;
+      right: 24px;
+      z-index: 2000;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .toast {
+      padding: 14px 20px;
+      border-radius: 12px;
+      font-size: 14px;
+      font-weight: 500;
+      color: #fff;
+      box-shadow: var(--shadow-lg);
+      animation: slideIn 0.3s ease, fadeOut 0.3s ease 2.7s forwards;
+      max-width: 360px;
+    }
+    .toast.success { background: var(--success); }
+    .toast.error { background: var(--danger); }
+    @keyframes slideIn {
+      from { transform: translateX(100%); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+    @keyframes fadeOut {
+      to { opacity: 0; transform: translateX(20px); }
+    }
+
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .animate-in {
+      animation: fadeInUp 0.5s ease forwards;
+    }
+
+    ::-webkit-scrollbar { width: 8px; height: 8px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--gray-300); border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--gray-400); }
+  </style>
+</head>
+<body>
+  {{ frontend_user|json_script:"django-user-data" }}
+  <script>window.DJANGO_USER = JSON.parse(document.getElementById('django-user-data').textContent);</script>
+
+  <div id="header-mount"></div>
+  <div class="toast-container" id="toast-container"></div>
+
+  <main class="detail-wrapper">
+    <nav class="detail-breadcrumb animate-in">
+      <a href="/">Accueil</a>
+      <span class="sep">&rsaquo;</span>
+      <a href="/catalogue/">Livres</a>
+      <span class="sep">&rsaquo;</span>
+      <span id="bc-titre">Detail</span>
+    </nav>
+
+    <div class="detail-grid">
+      <div class="gallery-section animate-in">
+        <div class="main-image-wrapper" id="main-img">
+          <span class="main-image-placeholder">&#128214;</span>
+          <span class="image-badge" id="img-badge" style="display:none">Neuf</span>
+        </div>
+        <div class="thumbs-row" id="thumbs-container"></div>
+      </div>
+
+      <div class="info-section">
+        <div class="info-header animate-in">
+          <span class="book-state-badge neuf" id="d-etat">Neuf</span>
+          <h1 class="book-title" id="d-titre">Chargement...</h1>
+
+          <div class="book-meta-row">
+            <span id="d-auteur">&mdash;</span>
+            <span class="dot"></span>
+            <span id="d-matiere">&mdash;</span>
+            <span class="dot"></span>
+            <span id="d-niveau">&mdash;</span>
+          </div>
+
+          <div class="book-price-block">
+            <span class="book-price" id="d-prix">&mdash;</span>
+            <span class="book-price-note">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+              Paiement securise
+            </span>
+          </div>
+
+          <p class="book-description" id="d-desc">...</p>
+        </div>
+
+        <div class="seller-card animate-in" id="seller-card">
+          <div class="seller-avatar" id="d-avatar">?</div>
+          <div class="seller-info">
+            <div class="seller-name" id="d-vendeur">Vendeur</div>
+            <div class="seller-rating" id="d-note">
+              <span class="seller-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</span>
+              <span class="seller-rating-text">&mdash;</span>
+              <span class="seller-rating-count">0 evaluation(s)</span>
+            </div>
+          </div>
+          <button class="btn-voir-profil" id="btn-voir-profil">Voir le profil &rarr;</button>
+        </div>
+
+        <div class="actions-card animate-in">
+          <div class="actions-grid">
+            <button class="btn btn-primary btn-lg btn-full" id="btn-acheter">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+              Acheter maintenant
+            </button>
+            <button class="btn btn-outline btn-lg" id="btn-contacter">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+              Contacter
+            </button>
+            <button class="btn btn-favori btn-lg" id="btn-favori" onclick="toggleFavori()">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+              <span id="favori-text">Ajouter aux favoris</span>
+            </button>
+          </div>
+
+          <div class="actions-footer">
+            <button class="btn-signaler" onclick="if (!Auth.isLogged()) { window.location.href='/connexion/?next=' + encodeURIComponent(window.location.pathname + window.location.search); } else { openModal('signaler-modal'); }">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg>
+              Signaler cette annonce
+            </button>
+          </div>
+
+          <div class="trust-badges">
+            <div class="trust-badge">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+              Annonce verifiee
+            </div>
+            <div class="trust-badge">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+              Transaction securisee
+            </div>
+            <div class="trust-badge">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+              Reponse rapide
+            </div>
+          </div>
+        </div>
+
+        <div class="evaluations-section animate-in">
+          <div class="section-header">
+            <h3 class="section-title">Evaluations du vendeur</h3>
+            <span class="section-count" id="eval-count">0 avis</span>
+          </div>
+          <div id="eval-list">
+            <div class="eval-empty">
+              <div class="eval-empty-icon">&#11088;</div>
+              <p>Aucune evaluation pour ce vendeur pour le moment.</p>
+            </div>
+          </div>
+
+          <div class="eval-form-box" id="eval-form-container" style="display:none">
+            <div class="eval-form-title">Laisser une evaluation</div>
+            <div class="star-rating" id="star-selector">
+              <span class="star" data-val="1">&#9733;</span>
+              <span class="star" data-val="2">&#9733;</span>
+              <span class="star" data-val="3">&#9733;</span>
+              <span class="star" data-val="4">&#9733;</span>
+              <span class="star" data-val="5">&#9733;</span>
+            </div>
+            <input type="hidden" id="selected-note" value="0">
+            <textarea id="eval-commentaire" class="form-control" rows="3" placeholder="Partagez votre experience avec ce vendeur..."></textarea>
+            <button class="btn btn-primary" style="margin-top:16px;" onclick="submitEval()">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+              Envoyer l'evaluation
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <div class="modal-overlay" id="commande-modal">
+    <div class="modal lg">
+      <button class="modal-close" data-modal-close="commande-modal">&times;</button>
+      <h2 class="modal-title">Finaliser ma commande</h2>
+      <p class="modal-subtitle">Remplissez vos coordonnees pour confirmer l'achat</p>
+      <form id="commande-form" onsubmit="submitCommande(event)">
+        <div class="form-row">
+          <div class="form-group">
+            <label>Prenom</label>
+            <input type="text" class="form-control" name="prenom" id="cmd-prenom" required placeholder="Votre prenom">
+          </div>
+          <div class="form-group">
+            <label>Nom</label>
+            <input type="text" class="form-control" name="nom" id="cmd-nom" required placeholder="Votre nom">
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Telephone</label>
+          <input type="tel" class="form-control" name="tel" id="cmd-tel" required placeholder="06 12 34 56 78">
+        </div>
+        <div class="form-group">
+          <label>Adresse de livraison</label>
+          <textarea class="form-control" name="adresse" id="cmd-adresse" rows="2" placeholder="Numero, rue, ville, code postal..."></textarea>
+        </div>
+        <div class="form-group">
+          <label>Type de livraison</label>
+          <select class="form-control" name="type" id="cmd-type" required>
+            <option value="REMISE_EN_MAIN_PROPRE">&#129309; Remise en main propre</option>
+            <option value="LIVRAISON_DOMICILE">&#128230; Livraison a domicile</option>
+          </select>
+        </div>
+        <div class="recap-box">
+          <div class="recap-line">
+            <span>Sous-total</span>
+            <strong id="recap-prix">&mdash;</strong>
+          </div>
+          <div class="recap-line">
+            <span>Frais de livraison</span>
+            <strong style="color:var(--success)">Gratuit</strong>
+          </div>
+          <div class="recap-line" style="border-top:1px solid var(--gray-200); padding-top:10px; margin-top:10px;">
+            <strong>Total</strong>
+            <span class="recap-total" id="recap-total">&mdash;</span>
+          </div>
+        </div>
+        <button type="submit" class="btn btn-primary btn-block btn-lg" id="btn-submit-cmd">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+          Confirmer la commande
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="signaler-modal">
+    <div class="modal">
+      <button class="modal-close" data-modal-close="signaler-modal">&times;</button>
+      <h2 class="modal-title">Signaler cette annonce</h2>
+      <p class="modal-subtitle">Aidez-nous a maintenir une marketplace de qualite</p>
+      <div class="form-group">
+        <label>Raison du signalement</label>
+        <select class="form-control" id="signalement-raison-type">
+          <option value="Contenu inapproprie">Contenu inapproprie</option>
+          <option value="Prix abusif">Prix abusif</option>
+          <option value="Annonce frauduleuse">Annonce frauduleuse</option>
+          <option value="Livre deja vendu">Livre deja vendu</option>
+          <option value="Autre">Autre</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Details (optionnel)</label>
+        <textarea class="form-control" id="signalement-details" rows="3" placeholder="Expliquez votre signalement en quelques mots..."></textarea>
+      </div>
+      <button class="btn btn-primary btn-block" onclick="submitSignalement()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg>
+        Envoyer le signalement
+      </button>
+    </div>
+  </div>
+
+  <script src="{% static 'web/js/config.js' %}"></script>
+  <script src="{% static 'web/js/api.js' %}"></script>
+  <script src="{% static 'web/js/main.js' %}"></script>
+  <script src="{% static 'web/js/header.js' %}"></script>
+  <script>
+    injectConnectedHeader();
+
+    const params  = new URLSearchParams(location.search);
+    const livreId = params.get('id');
+    let currentBook   = null;
+    let vendeurId     = null;
+    let estFavori     = false;
+    let commandeValide= null;
+
+    function toast(message, type) {
+      type = type || 'success';
+      const container = document.getElementById('toast-container');
+      const el = document.createElement('div');
+      el.className = 'toast ' + type;
+      el.textContent = message;
+      container.appendChild(el);
+      setTimeout(function() { el.remove(); }, 3000);
+    }
+
+    function formatPrice(p) {
+      return p == null ? 'Gratuit' : parseFloat(p).toLocaleString('fr-FR', {style:'currency', currency:'MAD'});
+    }
+    function initials(name) {
+      return name.split(' ').map(function(n) { return n[0]; }).join('').toUpperCase().slice(0,2);
+    }
+    function timeAgo(dateStr) {
+      const d = new Date(dateStr);
+      const diff = Math.floor((Date.now() - d) / 1000);
+      if (diff < 60) return "a l'instant";
+      if (diff < 3600) return "il y a " + Math.floor(diff/60) + " min";
+      if (diff < 86400) return "il y a " + Math.floor(diff/3600) + " h";
+      if (diff < 2592000) return "il y a " + Math.floor(diff/86400) + " j";
+      return d.toLocaleDateString('fr-FR');
+    }
+
+    function openModal(id) {
+      const el = document.getElementById(id);
+      el.classList.add('active');
+      document.body.style.overflow = 'hidden';
+    }
+    function closeModal(id) {
+      const el = document.getElementById(id);
+      el.classList.remove('active');
+      document.body.style.overflow = '';
+    }
+
+    document.querySelectorAll('[data-modal-close]').forEach(function(btn) {
+      btn.addEventListener('click', function() { closeModal(btn.dataset.modalClose); });
+    });
+    document.querySelectorAll('.modal-overlay').forEach(function(overlay) {
+      overlay.addEventListener('click', function(e) { if (e.target === overlay) overlay.classList.remove('active'); });
+    });
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') {
+        document.querySelectorAll('.modal-overlay.active').forEach(function(m) { m.classList.remove('active'); });
+        document.body.style.overflow = '';
+      }
+    });
+
+    async function loadDetail() {
+      if (!livreId) { toast('Livre introuvable', 'error'); return; }
+      try {
+        const b = await API.get(ENDPOINTS.LIVRES + livreId + '/');
+        currentBook = b;
+        vendeurId   = b.vendeur ? b.vendeur.id : null;
+        estFavori   = b.est_favori || false;
+
+        document.getElementById('d-titre').textContent   = b.titre;
+        document.getElementById('bc-titre').textContent  = b.titre;
+        document.getElementById('d-auteur').textContent  = b.auteur || 'Auteur inconnu';
+        document.getElementById('d-matiere').textContent = b.matiere || 'Matiere non precisee';
+        document.getElementById('d-niveau').textContent  = b.niveau || 'Niveau non precise';
+        document.getElementById('d-prix').textContent    = formatPrice(b.prix);
+        document.getElementById('d-desc').textContent    = b.description || 'Aucune description fournie par le vendeur.';
+        document.getElementById('recap-prix').textContent  = formatPrice(b.prix);
+        document.getElementById('recap-total').textContent = formatPrice(b.prix);
+
+        const etat = (b.etat || 'BON').toLowerCase();
+        const eEl  = document.getElementById('d-etat');
+        const labels = {neuf:'Neuf', bon:'Bon etat', usage:'Usage', vendu:'Vendu'};
+        eEl.className   = 'book-state-badge ' + etat;
+        eEl.textContent = labels[etat] || 'Bon etat';
+
+        const nom = b.vendeur ? (b.vendeur.prenom + ' ' + b.vendeur.nom).trim() || b.vendeur.username : 'Vendeur';
+        document.getElementById('d-vendeur').textContent = nom;
+        document.getElementById('d-avatar').textContent  = initials(nom);
+        document.getElementById('btn-voir-profil').onclick = function() {
+          window.location.href = '/profil/?user_id=' + vendeurId;
+        };
+
+        const imgs = b.images || [];
+        const mainImg = document.getElementById('main-img');
+        const thumbsC = document.getElementById('thumbs-container');
+
+        function resolveImgUrl(img) {
+          if (!img) return null;
+          if (img.image_url) return img.image_url;
+          if (!img.image) return null;
+          return img.image.startsWith('http')
+            ? img.image
+            : CONFIG.MEDIA_URL.replace(/\/$/, '') + '/' + img.image.replace(/^\//, '');
+        }
+
+        if (imgs.length) {
+          const url = resolveImgUrl(imgs[0]);
+          mainImg.innerHTML = '<img src="' + url + '" alt="' + b.titre + '" loading="eager">';
+          thumbsC.innerHTML = imgs.map(function(img, i) {
+            const u = resolveImgUrl(img);
+            return '<div class="thumb-box' + (i===0 ? ' active' : '') + '" data-thumb="' + u + '" onclick="changeImg(this.dataset.thumb,this)"><img src="' + u + '" alt="" loading="lazy"></div>';
+          }).join('');
+        } else {
+          mainImg.innerHTML = '<span class="main-image-placeholder">&#128214;</span>';
+        }
+
+        updateFavoriBtn(estFavori);
+
+        const user = Auth.getUser() || window.DJANGO_USER;
+        const btnAcheter = document.getElementById('btn-acheter');
+        if (b.statut !== 'DISPONIBLE') {
+          btnAcheter.disabled = true;
+          btnAcheter.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg> Plus disponible';
+          btnAcheter.style.background = 'var(--gray-400)';
+          btnAcheter.style.boxShadow = 'none';
+        } else if (user && vendeurId === user.id) {
+          btnAcheter.disabled = true;
+          btnAcheter.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg> Votre livre';
+          btnAcheter.style.background = 'var(--gray-400)';
+          btnAcheter.style.boxShadow = 'none';
+        } else {
+          btnAcheter.onclick = function() {
+            if (!Auth.isLogged()) { window.location.href = '/connexion/?next=' + encodeURIComponent(window.location.pathname + window.location.search); return; }
+            openModal('commande-modal');
+            prefillForm();
+          };
+        }
+
+        document.getElementById('btn-contacter').onclick = function() {
+          if (!Auth.isLogged()) { window.location.href = '/connexion/?next=' + encodeURIComponent('/messagerie/?to=' + vendeurId); return; }
+          window.location.href = '/messagerie/?to=' + vendeurId;
+        };
+
+        if (user && vendeurId === user.id) {
+          document.getElementById("btn-favori").style.display = "none";
+          document.getElementById("btn-contacter").style.display = "none";
+          var signalerBtn = document.querySelector('.btn-signaler');
+          if (signalerBtn) signalerBtn.closest('.actions-footer').style.display = 'none';
+        }
+
+        await loadEvaluations();
+
+      } catch (e) {
+        toast('Erreur de chargement du livre', 'error');
+        console.error(e);
+      }
+    }
+
+    function changeImg(url, el) {
+      const main = document.getElementById('main-img');
+      main.innerHTML = '<img src="' + url + '" alt="" style="animation:fadeIn 0.3s">';
+      document.querySelectorAll('.thumb-box').forEach(function(t) { t.classList.remove('active'); });
+      el.classList.add('active');
+    }
+
+    function prefillForm() {
+      const user = Auth.getUser() || window.DJANGO_USER;
+      if (!user) return;
+      document.getElementById('cmd-prenom').value = user.prenom || user.first_name || '';
+      document.getElementById('cmd-nom').value    = user.nom    || user.last_name  || '';
+    }
+
+    async function submitCommande(e) {
+      e.preventDefault();
+      if (!Auth.requireAuth()) return;
+      const btn = document.getElementById('btn-submit-cmd');
+      btn.disabled = true;
+      btn.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="spin"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg> Envoi en cours...';
+      try {
+        await API.post(ENDPOINTS.COMMANDES, {
+          livre              : parseInt(livreId),
+          type_livraison     : document.getElementById('cmd-type').value,
+          adresse_livraison  : document.getElementById('cmd-adresse').value || 'A definir',
+          telephone          : document.getElementById('cmd-tel').value,
+          nom_acheteur       : document.getElementById('cmd-nom').value,
+          prenom_acheteur    : document.getElementById('cmd-prenom').value,
+        });
+        closeModal('commande-modal');
+        toast('Commande envoyee ! Le vendeur a ete notifie.', 'success');
+        document.getElementById('btn-acheter').disabled = true;
+        document.getElementById('btn-acheter').innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg> Commande';
+        document.getElementById('btn-acheter').style.background = 'var(--success)';
+        document.getElementById('btn-acheter').style.boxShadow = 'none';
+        setTimeout(function() { window.location.href = '/commandes/'; }, 2000);
+      } catch (err) {
+        toast(err.message || 'Erreur lors de la commande', 'error');
+        btn.disabled = false;
+        btn.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg> Confirmer la commande';
+      }
+    }
+
+    async function toggleFavori() {
+      if (!Auth.requireAuth()) return;
+      const btn = document.getElementById('btn-favori');
+      btn.disabled = true;
+      try {
+        const res = await API.post(ENDPOINTS.FAVORIS_TOGGLE, { livre: parseInt(livreId) });
+        estFavori = res.est_favori;
+        updateFavoriBtn(estFavori);
+        toast(res.message, 'success');
+      } catch (e) {
+        toast(e.message || 'Erreur', 'error');
+      } finally {
+        btn.disabled = false;
+      }
+    }
+
+    function updateFavoriBtn(isFav) {
+      const btn = document.getElementById('btn-favori');
+      const txt = document.getElementById('favori-text');
+      if (!btn) return;
+      if (isFav) {
+        btn.classList.add('active');
+        txt.textContent = 'Retirer des favoris';
+      } else {
+        btn.classList.remove('active');
+        txt.textContent = 'Ajouter aux favoris';
+      }
+    }
+
+    async function submitSignalement() {
+      if (!Auth.requireAuth()) return;
+      const raison  = document.getElementById('signalement-raison-type').value;
+      const details = document.getElementById('signalement-details').value.trim();
+      const raison_finale = details ? raison + ' — ' + details : raison;
+      try {
+        await API.post(ENDPOINTS.SIGNALEMENTS, {
+          livre_signale: parseInt(livreId),
+          raison        : raison_finale
+        });
+        closeModal('signaler-modal');
+        toast('Signalement envoye. Merci pour votre vigilance !', 'success');
+        document.getElementById('signalement-details').value = '';
+      } catch (e) { toast(e.message || 'Erreur', 'error'); }
+    }
+
+    async function loadEvaluations() {
+      if (!vendeurId) return;
+      try {
+        const data = await API.get(ENDPOINTS.EVAL_PROFIL(vendeurId));
+
+        const noteEl = document.getElementById('d-note');
+        if (data.note_moyenne > 0) {
+          const fullStars = Math.round(data.note_moyenne);
+          noteEl.innerHTML = '<span class="seller-stars">' + '&#9733;'.repeat(fullStars) + '&#9734;'.repeat(5-fullStars) + '</span><span class="seller-rating-text">' + data.note_moyenne + '/5</span><span class="seller-rating-count">' + data.nb_evaluations + ' evaluation' + (data.nb_evaluations > 1 ? 's' : '') + '</span>';
+        } else {
+          noteEl.innerHTML = '<span class="seller-stars" style="color:var(--gray-300)">&#9733;&#9733;&#9733;&#9733;&#9733;</span><span class="seller-rating-text">Aucune evaluation</span>';
+        }
+        document.getElementById('eval-count').textContent = (data.nb_evaluations || 0) + ' avis';
+
+        const list = document.getElementById('eval-list');
+        const evals = data.evaluations || [];
+        if (!evals.length) {
+          list.innerHTML = '<div class="eval-empty"><div class="eval-empty-icon">&#11088;</div><p>Aucune evaluation pour ce vendeur pour le moment.</p></div>';
+        } else {
+          list.innerHTML = evals.map(function(ev) {
+            const nomEval = (ev.evaluateur ? ev.evaluateur.prenom : '') + ' ' + (ev.evaluateur ? ev.evaluateur.nom : '');
+            return '<div class="eval-card"><div class="eval-header"><div class="eval-avatar">' + initials(nomEval) + '</div><div class="eval-meta"><div class="eval-author">' + (nomEval.trim() || 'Utilisateur') + '</div><div class="eval-stars">' + '&#9733;'.repeat(ev.note) + '&#9734;'.repeat(5-ev.note) + '</div></div><span class="eval-date">' + timeAgo(ev.date_creation) + '</span></div>' + (ev.commentaire ? '<p class="eval-text">' + ev.commentaire + '</p>' : '') + '</div>';
+          }).join('');
+        }
+
+        const user = Auth.getUser() || window.DJANGO_USER;
+        if (user && vendeurId !== user.id) {
+          document.getElementById('eval-form-container').style.display = 'block';
+          try {
+            const commandes = await API.get(ENDPOINTS.MES_ACHATS);
+            const arr = Array.isArray(commandes) ? commandes : (commandes.results || []);
+            commandeValide = arr.find(function(c) {
+              return c.livre_details && c.livre_details.vendeur && c.livre_details.vendeur.id === vendeurId && (c.statut === 'LIVREE');
+            });
+          } catch(e) {}
+        }
+      } catch (e) { console.error('eval error', e); }
+    }
+
+    const stars = document.querySelectorAll('#star-selector .star');
+    stars.forEach(function(s) {
+      s.addEventListener('mouseenter', function() {
+        const val = parseInt(s.dataset.val);
+        stars.forEach(function(st) { st.classList.toggle('hovered', parseInt(st.dataset.val) <= val); });
+      });
+      s.addEventListener('mouseleave', function() {
+        stars.forEach(function(st) { st.classList.remove('hovered'); });
+      });
+      s.addEventListener('click', function() {
+        const val = parseInt(s.dataset.val);
+        document.getElementById('selected-note').value = val;
+        stars.forEach(function(st) { st.classList.toggle('active', parseInt(st.dataset.val) <= val); });
+      });
+    });
+
+    async function submitEval() {
+      if (!Auth.requireAuth()) return;
+      const note = parseInt(document.getElementById('selected-note').value);
+      if (!note || note < 1) { toast('Veuillez selectionner une note', 'error'); return; }
+      const commentaire = document.getElementById('eval-commentaire').value.trim();
+      const body = { evalue: vendeurId, note: note, commentaire: commentaire };
+      if (commandeValide) body.commande = commandeValide.id;
+      try {
+        await API.post(ENDPOINTS.EVALUATIONS, body);
+        toast('Evaluation envoyee avec succes !', 'success');
+        document.getElementById('eval-form-container').style.display = 'none';
+        await loadEvaluations();
+      } catch (e) { toast(e.message || 'Erreur', 'error'); }
+    }
+
+    const spinStyle = document.createElement('style');
+    spinStyle.textContent = '@keyframes fadeIn { from { opacity:0; } to { opacity:1; } } @keyframes spin { to { transform: rotate(360deg); } } .spin { animation: spin 1s linear infinite; }';
+    document.head.appendChild(spinStyle);
+
+    loadDetail();
+  </script>
+</body>
+</html>

@@ -1,0 +1,218 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" type="image/png" href="{% static 'web/images/logo-emsi.png' %}">
+  <title>Vendre un livre — Bourse aux Livres EMSI</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{% static 'web/css/style.css' %}" />
+</head>
+<body style="background: var(--gray-50);">
+  {{ frontend_user|json_script:"django-user-data" }}
+  <script>window.DJANGO_USER = JSON.parse(document.getElementById('django-user-data').textContent);</script>
+
+  <div id="header-mount"></div>
+
+  <main class="container" style="max-width:800px">
+    <div class="page-header">
+      <h1>Mettre en vente un livre</h1>
+    </div>
+
+    <div style="background:var(--white); border:1px solid var(--gray-200); border-radius:var(--radius); padding:32px;">
+
+      <div class="steps">
+        <div class="step active" data-step="1"><div class="step-num">1</div><div class="step-label">Informations</div></div>
+        <div class="step" data-step="2"><div class="step-num">2</div><div class="step-label">Détails</div></div>
+        <div class="step" data-step="3"><div class="step-num">3</div><div class="step-label">Images</div></div>
+        <div class="step" data-step="4"><div class="step-num">4</div><div class="step-label">Validation</div></div>
+      </div>
+
+      <form id="sell-form" onsubmit="return false">
+        <!-- Étape 1 -->
+        <div class="step-content active" data-content="1">
+          <div class="form-group"><label>Titre du livre *</label><input name="titre" class="form-control" required></div>
+          <div class="form-group"><label>Auteur *</label><input name="auteur" class="form-control" required></div>
+          <div class="form-row">
+            <div class="form-group"><label>Matière *</label>
+              <select name="matiere" class="form-control" required>
+                <option value="">—</option><option>Mathématiques</option><option>Physique</option>
+                <option>Informatique</option><option>Chimie</option><option>Anglais</option><option>Économie</option>
+              </select>
+            </div>
+            <div class="form-group"><label>Niveau *</label>
+              <select name="niveau" class="form-control" required>
+                <option value="">—</option><option>Tronc commun</option>
+                <option>1ère année</option><option>2ème année</option><option>3ème année</option>
+                <option>4ème année</option><option>5ème année</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group"><label>Type d'annonce *</label>
+            <select name="type_annonce" id="type-annonce-select" class="form-control" required>
+              <option value="VENTE">Vente</option><option value="DON">Don</option><option value="ECHANGE">Échange</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Étape 2 -->
+        <div class="step-content" data-content="2">
+          <div class="form-group"><label>Description *</label>
+            <textarea name="description" class="form-control" rows="5" required placeholder="Décrivez l'état, les annotations, l'usage…"></textarea>
+          </div>
+          <div class="form-row">
+            <div class="form-group"><label>État *</label>
+              <select name="etat" id="etat-select" class="form-control" required>
+                <option value="">—</option>
+                <option value="NEUF">Neuf</option>
+                <option value="BON">Bon état</option>
+                <option value="USAGE">Usagé</option>
+              </select>
+            </div>
+            <div class="form-group"><label>Prix (DH)</label>
+              <input name="prix" type="number" min="0" step="5" class="form-control" placeholder="0 pour un don">
+            </div>
+          </div>
+        </div>
+
+        <!-- Étape 3 -->
+        <div class="step-content" data-content="3">
+          <div class="upload-area" id="upload" onclick="document.getElementById('file-input').click()">
+           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M6.827 6.175A2.31 2.31 0 0 1 5.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 0 0-1.134-.175 2.31 2.31 0 0 1-1.64-1.055l-.822-1.316a2.192 2.192 0 0 0-1.736-1.039 48.774 48.774 0 0 0-5.232 0 2.192 2.192 0 0 0-1.736 1.039l-.821 1.316Z" />
+        <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 12.75a4.5 4.5 0 1 1-9 0 4.5 4.5 0 0 1 9 0ZM18.75 10.5h.008v.008h-.008V10.5Z" />
+      </svg>
+            <h3>Glissez vos images ici</h3>
+            <p style="color:var(--gray-600)">ou cliquez pour parcourir (JPG, PNG, max 5)</p>
+            <input type="file" id="file-input" hidden multiple accept="image/*">
+          </div>
+          <div class="preview-grid" id="preview"></div>
+        </div>
+
+        <!-- Étape 4 -->
+        <div class="step-content" data-content="4">
+          <h3 style="margin-bottom:16px">Récapitulatif</h3>
+          <div id="recap" style="background:var(--gray-50); padding:20px; border-radius:8px;"></div>
+        </div>
+
+        <div style="display:flex; justify-content:space-between; margin-top:32px;">
+          <button type="button" class="btn btn-outline" id="btn-prev" onclick="goStep(-1)" disabled>← Précédent</button>
+          <button type="button" class="btn btn-primary" id="btn-next" onclick="goStep(1)">Suivant →</button>
+          <button type="button" class="btn btn-primary" id="btn-submit" onclick="submitForm()" style="display:none">✓ Publier l'annonce</button>
+        </div>
+      </form>
+    </div>
+  </main>
+
+  <script src="{% static 'web/js/config.js' %}"></script>
+  <script src="{% static 'web/js/api.js' %}"></script>
+  <script src="{% static 'web/js/main.js' %}"></script>
+  <script src="{% static 'web/js/header.js' %}"></script>
+  <script>
+    // Rediriger si non connecté
+    injectConnectedHeader();
+
+    let step = 1;
+    const total = 4;
+    let files = [];
+
+    function goStep(delta) {
+      const newStep = step + delta;
+      if (newStep < 1 || newStep > total) return;
+      if (delta > 0) {
+        const cur = document.querySelector(`.step-content[data-content="${step}"]`);
+        const required = cur.querySelectorAll('[required]');
+        for (const f of required) {
+          if (!f.value) { f.focus(); toast('Veuillez remplir tous les champs','error'); return; }
+        }
+      }
+      step = newStep;
+      document.querySelectorAll('.step-content').forEach(c => c.classList.remove('active'));
+      document.querySelector(`.step-content[data-content="${step}"]`).classList.add('active');
+      document.querySelectorAll('.step').forEach(s => {
+        const n = +s.dataset.step;
+        s.classList.toggle('active', n === step);
+        s.classList.toggle('done', n < step);
+      });
+      document.getElementById('btn-prev').disabled = step === 1;
+      document.getElementById('btn-next').style.display = step === total ? 'none' : '';
+      document.getElementById('btn-submit').style.display = step === total ? '' : 'none';
+      if (step === total) buildRecap();
+    }
+
+    function buildRecap() {
+      const f = document.getElementById('sell-form');
+      const get = n => f.elements[n]?.value || '—';
+      const typeLabels = { VENTE: 'Vente', DON: 'Don', ECHANGE: 'Échange' };
+      const etatLabels = { NEUF: 'Neuf', BON: 'Bon état', USAGE: 'Usagé' };
+      document.getElementById('recap').innerHTML = `
+        <p><strong>Titre :</strong> ${get('titre')}</p>
+        <p><strong>Auteur :</strong> ${get('auteur')}</p>
+        <p><strong>Matière :</strong> ${get('matiere')} · <strong>Niveau :</strong> ${get('niveau')}</p>
+        <p><strong>Type :</strong> ${typeLabels[get('type_annonce')] || get('type_annonce')} · <strong>État :</strong> ${etatLabels[get('etat')] || get('etat')}</p>
+        <p><strong>Prix :</strong> ${get('prix') ? get('prix')+' DH' : 'Gratuit'}</p>
+        <p><strong>Description :</strong><br>${get('description')}</p>
+        <p><strong>Images :</strong> ${files.length} fichier(s)</p>
+      `;
+    }
+
+    // Upload d'images
+    const input = document.getElementById('file-input');
+    const upload = document.getElementById('upload');
+    const preview = document.getElementById('preview');
+
+    function handleFiles(list) {
+      files = [...list].slice(0,5);
+      preview.innerHTML = files.map((f,i) => `
+        <div class="preview-item ${i===0?'main':''}">
+          ${f.type.startsWith('image') ? `<img src="${URL.createObjectURL(f)}" style="width:100%;height:100%;object-fit:cover;border-radius:6px">` : '📄'}
+        </div>
+      `).join('');
+    }
+    input.addEventListener('change', e => handleFiles(e.target.files));
+    ['dragover','dragenter'].forEach(ev => upload.addEventListener(ev, e => { e.preventDefault(); upload.classList.add('drag'); }));
+    ['dragleave','drop'].forEach(ev => upload.addEventListener(ev, e => { e.preventDefault(); upload.classList.remove('drag'); }));
+    upload.addEventListener('drop', e => handleFiles(e.dataTransfer.files));
+
+    async function submitForm() {
+      const f = document.getElementById('sell-form');
+      const fd = new FormData();
+
+      // Champs texte
+      const fields = ['titre', 'auteur', 'matiere', 'niveau', 'description', 'etat'];
+      for (const name of fields) {
+        const el = f.elements[name];
+        if (el && el.value) {
+          fd.append(name, el.value);
+        }
+      }
+
+      // Type annonce — valeur directe depuis le select nommé type_annonce
+      const typeEl = document.getElementById('type-annonce-select');
+      if (typeEl && typeEl.value) {
+        fd.append('type_annonce', typeEl.value);
+      }
+
+      // Prix
+      const prixEl = f.elements['prix'];
+      if (prixEl && prixEl.value !== '') {
+        fd.append('prix', prixEl.value);
+      }
+
+      // Images
+      files.forEach((file, i) => fd.append(i === 0 ? 'image' : 'images', file));
+
+      try {
+        await API.post(ENDPOINTS.LIVRES, fd);
+        toast('Annonce publiée !', 'success');
+        setTimeout(() => window.location.href = '/catalogue/', 800);
+      } catch (err) {
+        toast(err.message || 'Erreur publication', 'error');
+        console.error('Erreur:', err);
+      }
+    }
+  </script>
+</body>
+</html>

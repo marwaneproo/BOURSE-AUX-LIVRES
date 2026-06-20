@@ -1,0 +1,624 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" type="image/png" href="{% static 'web/images/logo-emsi.png' %}">
+  <title>Mon profil — Bourse aux Livres EMSI</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{% static 'web/css/style.css' %}" />
+  <style>
+    .notif-item { padding:14px; border-bottom:1px solid var(--gray-100); }
+    .notif-item.non-lue { background:#f0f4ff; }
+    .notif-accept { background:var(--success); color:#fff; border:none; padding:5px 12px; border-radius:6px; cursor:pointer; font-size:12px; margin-right:6px; }
+    .notif-refuse { background:var(--danger); color:#fff; border:none; padding:5px 12px; border-radius:6px; cursor:pointer; font-size:12px; }
+    .star-disp { color:#f59e0b; }
+    .tab-icon { width:18px; height:18px; vertical-align:middle; margin-right:6px; }
+
+    /* ── Mini Dashboard ── */
+    .stats-dashboard {
+      background: #fff;
+      border: 1px solid #e2e8f0;
+      border-radius: 16px;
+      padding: 28px 32px;
+      margin-bottom: 24px;
+    }
+    .stats-dashboard h3 {
+      font-size: 16px; font-weight: 700; color: #0f172a;
+      margin-bottom: 20px; display: flex; align-items: center; gap: 8px;
+    }
+    .stats-bars { display: flex; flex-direction: column; gap: 18px; }
+    .stat-bar-item { display: flex; flex-direction: column; gap: 6px; }
+    .stat-bar-header { display: flex; justify-content: space-between; align-items: center; }
+    .stat-bar-label { font-size: 13px; font-weight: 600; color: #475569; display: flex; align-items: center; gap: 7px; }
+    .stat-bar-icon { width: 28px; height: 28px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 14px; }
+    .stat-bar-value { font-size: 20px; font-weight: 800; color: #0f172a; }
+    .stat-bar-track {
+      height: 10px; background: #f1f5f9; border-radius: 99px; overflow: hidden;
+    }
+    .stat-bar-fill {
+      height: 100%; border-radius: 99px;
+      transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+      width: 0%;
+    }
+    .stat-bar-fill.livres  { background: linear-gradient(90deg, #16a34a, #4ade80); }
+    .stat-bar-fill.ventes  { background: linear-gradient(90deg, #2563eb, #60a5fa); }
+    .stat-bar-fill.achats  { background: linear-gradient(90deg, #9333ea, #c084fc); }
+  </style>
+</head>
+<body style="background: var(--gray-50);">
+  {{ frontend_user|json_script:"django-user-data" }}
+  <script>window.DJANGO_USER = JSON.parse(document.getElementById('django-user-data').textContent);</script>
+
+  <div id="header-mount"></div>
+
+  <main class="container" style="padding-top:24px">
+
+    <!-- Carte profil -->
+    <div class="profile-card" id="profile-card">
+      <div class="avatar xl" id="p-avatar" onclick="document.getElementById('avatar-input').click()" style="cursor:pointer">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="avatar-icon">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M17.982 18.725A7.488 7.488 0 0 0 12 15.75a7.488 7.488 0 0 0-5.982 2.975m11.963 0a9 9 0 1 0-11.963 0m11.963 0A8.966 8.966 0 0 1 12 21a8.966 8.966 0 0 1-5.982-2.275M15 9.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+        </svg>
+      </div>
+      <input type="file" id="avatar-input" hidden accept="image/*" onchange="uploadPhoto(this)">
+      <div style="flex:1">
+        <h2 id="p-name">Chargement…</h2>
+        <div class="email" id="p-email">—</div>
+        <div class="badges" id="p-badges"></div>
+      </div>
+      <button class="btn btn-logout" onclick="Auth.logout()">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15m3 0 3-3m0 0-3-3m3 3H9" />
+        </svg>
+        Déconnexion
+      </button>
+    </div>
+
+    <!-- Mini Dashboard -->
+    <div class="stats-dashboard" id="stats-dashboard">
+      <h3>
+        <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" style="color:#16a34a">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 0 1 3 19.875v-6.75ZM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V8.625ZM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V4.125Z"/>
+        </svg>
+        Mon tableau de bord
+      </h3>
+      <div class="stats-bars">
+        <!-- Livres publiés -->
+        <div class="stat-bar-item">
+          <div class="stat-bar-header">
+            <div class="stat-bar-label">
+              <div class="stat-bar-icon" style="background:#dcfce7;">📚</div>
+              Livres publiés
+            </div>
+            <div class="stat-bar-value" id="stat-livres">–</div>
+          </div>
+          <div class="stat-bar-track">
+            <div class="stat-bar-fill livres" id="bar-livres"></div>
+          </div>
+        </div>
+        <!-- Ventes -->
+        <div class="stat-bar-item">
+          <div class="stat-bar-header">
+            <div class="stat-bar-label">
+              <div class="stat-bar-icon" style="background:#dbeafe;">💰</div>
+              Ventes réalisées
+            </div>
+            <div class="stat-bar-value" id="stat-ventes">–</div>
+          </div>
+          <div class="stat-bar-track">
+            <div class="stat-bar-fill ventes" id="bar-ventes"></div>
+          </div>
+        </div>
+        <!-- Achats -->
+        <div class="stat-bar-item">
+          <div class="stat-bar-header">
+            <div class="stat-bar-label">
+              <div class="stat-bar-icon" style="background:#f3e8ff;">🛒</div>
+              Achats effectués
+            </div>
+            <div class="stat-bar-value" id="stat-achats">–</div>
+          </div>
+          <div class="stat-bar-track">
+            <div class="stat-bar-fill achats" id="bar-achats"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Onglets -->
+    <div class="tabs">
+      <button class="tab active" data-tab="infos">Mes informations</button>
+      <button class="tab" data-tab="ventes-actives">Mes livres</button>
+      <button class="tab" data-tab="ventes">Mes ventes</button>
+      <button class="tab" data-tab="achats">Mes achats</button>
+      <button class="tab" data-tab="favoris">Mes favoris</button>
+      <button class="tab" data-tab="evals">Évaluations</button>
+      <button class="tab" data-tab="notifs">Notifications</button>
+    </div>
+
+    <!-- INFOS -->
+    <div class="tab-content active" data-content="infos">
+      <div style="background:#fff; border:1px solid var(--gray-200); border-radius:var(--radius); padding:32px; max-width:600px;">
+        <h3 style="margin-bottom:20px">Modifier mes informations</h3>
+        <form onsubmit="saveProfile(event)">
+          <div class="form-row">
+            <div class="form-group"><label>Prénom</label><input class="form-control" id="edit-prenom"></div>
+            <div class="form-group"><label>Nom</label><input class="form-control" id="edit-nom"></div>
+          </div>
+          <div class="form-group"><label>Nom d'utilisateur</label><input class="form-control" id="edit-username"></div>
+          <div class="form-group"><label>Email</label><input type="email" class="form-control" id="edit-email"></div>
+          <div class="form-group"><label>Téléphone</label><input class="form-control" id="edit-tel"></div>
+          <div class="form-group"><label>Ville</label><input class="form-control" id="edit-ville"></div>
+          <button class="btn btn-primary" type="submit">Enregistrer les modifications</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- MES LIVRES EN VENTE -->
+    <div class="tab-content" data-content="ventes-actives">
+      <div id="my-listings" class="book-grid"></div>
+    </div>
+
+    <!-- MES VENTES -->
+    <div class="tab-content" data-content="ventes">
+      <div class="data-table">
+        <table><thead><tr><th>Livre</th><th>Acheteur</th><th>Prix</th><th>Date</th><th>Statut</th><th>Actions</th></tr></thead>
+          <tbody id="ventes-tbody"><tr><td colspan="6" style="text-align:center;color:var(--gray-400)">Chargement…</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- MES ACHATS -->
+    <div class="tab-content" data-content="achats">
+      <div class="data-table">
+        <table><thead><tr><th>Livre</th><th>Vendeur</th><th>Prix</th><th>Date</th><th>Statut</th></tr></thead>
+          <tbody id="achats-tbody"><tr><td colspan="5" style="text-align:center;color:var(--gray-400)">Chargement…</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- FAVORIS -->
+    <div class="tab-content" data-content="favoris">
+      <div id="favoris-grid" class="book-grid"></div>
+    </div>
+
+    <!-- ÉVALUATIONS -->
+    <div class="tab-content" data-content="evals">
+      <div id="evals-list"></div>
+    </div>
+
+    <!-- NOTIFICATIONS -->
+    <div class="tab-content" data-content="notifs">
+      <div style="display:flex;justify-content:flex-end;margin-bottom:12px;">
+        <button class="btn btn-outline" onclick="marquerToutesLuesPage()">Tout marquer comme lu</button>
+      </div>
+      <div id="notifs-list"></div>
+    </div>
+
+  </main>
+
+  <script src="{% static 'web/js/config.js' %}"></script>
+  <script src="{% static 'web/js/api.js' %}"></script>
+  <script src="{% static 'web/js/main.js' %}"></script>
+  <script src="{% static 'web/js/header.js' %}"></script>
+  <script>
+    injectConnectedHeader();
+
+    // Vérifier si on consulte le profil d'un autre user
+    const urlParams = new URLSearchParams(location.search);
+    const viewUserId = urlParams.get('user_id');
+    const currentUser = Auth.getUser() || window.DJANGO_USER;
+    const isOwnProfile = !viewUserId || parseInt(viewUserId) === currentUser?.id;
+
+    // ── Tabs ─────────────────────────────────────────────────────────────────
+    document.querySelectorAll('.tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+        tab.classList.add('active');
+        const content = document.querySelector(`[data-content="${tab.dataset.tab}"]`);
+        if (content) content.classList.add('active');
+        // Lazy load
+        if (tab.dataset.tab === 'ventes-actives') loadMesLivres();
+        if (tab.dataset.tab === 'ventes')         loadMesVentes();
+        if (tab.dataset.tab === 'achats')          loadMesAchats();
+        if (tab.dataset.tab === 'favoris')         loadFavoris();
+        if (tab.dataset.tab === 'evals')           loadEvals();
+        if (tab.dataset.tab === 'notifs')          loadNotifsList();
+      });
+    });
+
+    // ── Chargement profil ─────────────────────────────────────────────────────
+    async function loadProfile() {
+      try {
+        const data = await API.get(ENDPOINTS.PROFILE_ME);
+        const user = data.user;
+        const nom  = `${user.prenom||''} ${user.nom||''}`.trim() || user.username;
+
+        document.getElementById('p-name').textContent  = nom;
+        document.getElementById('p-email').textContent = user.email;
+
+        // Avatar
+        const avatarEl = document.getElementById('p-avatar');
+        if (data.photo_url) {
+          avatarEl.innerHTML = `<img src="${data.photo_url}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" alt="Photo">`;
+        } else {
+          avatarEl.textContent = initials(nom);
+        }
+
+        // Badges
+        const badges = [];
+        if (data.note_moyenne > 0) badges.push(`⭐ ${data.note_moyenne} (${data.nb_evaluations} avis)`);
+        if (data.est_acheteur) badges.push('Acheteur');
+        if (data.est_vendeur)  badges.push('Vendeur');
+        if (data.est_administrateur) badges.push('Admin');
+        document.getElementById('p-badges').innerHTML = badges.map(b => `<span>${b}</span>`).join('');
+
+        // Pré-remplir formulaire
+        document.getElementById('edit-prenom').value   = user.prenom    || '';
+        document.getElementById('edit-nom').value      = user.nom       || '';
+        document.getElementById('edit-username').value = user.username  || '';
+        document.getElementById('edit-email').value    = user.email     || '';
+        document.getElementById('edit-tel').value      = data.telephone || '';
+        document.getElementById('edit-ville').value    = data.ville     || '';
+      } catch (e) {
+        toast('Erreur chargement profil', 'error');
+      }
+    }
+
+    // ── Sauvegarde profil ─────────────────────────────────────────────────────
+    async function saveProfile(e) {
+      e.preventDefault();
+      try {
+        await API.patch(ENDPOINTS.PROFILE_ME, {
+          prenom   : document.getElementById('edit-prenom').value,
+          nom      : document.getElementById('edit-nom').value,
+          username : document.getElementById('edit-username').value,
+          email    : document.getElementById('edit-email').value,
+          telephone: document.getElementById('edit-tel').value,
+          ville    : document.getElementById('edit-ville').value,
+        });
+        toast('Profil mis à jour !', 'success');
+        await loadProfile();
+      } catch (e) { toast(e.message || 'Erreur', 'error'); }
+    }
+
+    // ── Upload photo ──────────────────────────────────────────────────────────
+    async function uploadPhoto(input) {
+      const file = input.files[0];
+      if (!file) return;
+      const fd = new FormData();
+      fd.append('photo', file);
+      try {
+        const resp = await API.patch(ENDPOINTS.PROFILE_ME, fd);
+        // Update stored user with new photo_url so header & other pages reflect it
+        const photoUrl = resp?.photo_url || resp?.photo || null;
+        if (photoUrl) {
+          const currentUser = Auth.getUser() || window.DJANGO_USER;
+          if (currentUser) {
+            currentUser.photo_url = photoUrl;
+            Auth.setSession(null, null, currentUser);
+          }
+          // Live-update header avatar if present
+          const headerAvatar = document.getElementById('header-avatar-link');
+          if (headerAvatar) {
+            headerAvatar.innerHTML = `<img src="${photoUrl}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" alt="Photo">`;
+          }
+          // Live-update messagerie avatar if present
+          document.querySelectorAll('.msg-self-avatar, [data-self-avatar]').forEach(el => {
+            el.innerHTML = `<img src="${photoUrl}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" alt="Photo">`;
+          });
+        }
+        toast('Photo mise à jour !', 'success');
+        await loadProfile();
+      } catch (e) { toast(e.message || 'Erreur upload', 'error'); }
+    }
+
+    // ── Mes livres ────────────────────────────────────────────────────────────
+    async function loadMesLivres() {
+      const grid = document.getElementById('my-listings');
+      grid.innerHTML = '<p style="color:var(--gray-400)">Chargement…</p>';
+      try {
+        const data = await API.get(ENDPOINTS.MES_LIVRES);
+        const livres = Array.isArray(data) ? data : (data.results||[]);
+        if (!livres.length) { grid.innerHTML = '<p style="color:var(--gray-400)">Aucun livre publié.</p>'; return; }
+        grid.innerHTML = livres.map(l => bookCard(l, true)).join('');
+      } catch (e) { grid.innerHTML = '<p style="color:var(--danger)">Erreur de chargement</p>'; }
+    }
+
+    function bookCard(l, showActions = false) {
+      const img    = l.images?.[0];
+      const imgUrl = img
+        ? (img.image_url || (img.image
+            ? (img.image.startsWith('http') ? img.image : CONFIG.MEDIA_URL.replace(/\/$/, '') + '/' + img.image.replace(/^\//, ''))
+            : null))
+        : null;
+      const etat   = (l.etat||'BON').toLowerCase();
+      const etatLabel = {neuf:'Neuf', bon:'Bon état', usage:'Usagé'}[etat] || '';
+      const badge  = {DISPONIBLE:'disponible', VENDU:'vendu', ARCHIVEE:'archivee'}[l.statut] || '';
+      return `
+      <div class="book-card" style="position:relative;">
+        <div class="book-img" onclick="window.location.href='/catalogue/detail/?id=${l.id}'" style="cursor:pointer;">
+          ${imgUrl ? `<img src="${imgUrl}" alt="${l.titre}" style="width:100%;height:100%;object-fit:cover;">` : `<span style="font-size:48px">📖</span>`}
+          <span class="book-badge ${etat}">${etatLabel}</span>
+        </div>
+        <div class="book-info">
+          <h3 class="book-title" onclick="window.location.href='/catalogue/detail/?id=${l.id}'" style="cursor:pointer;">${l.titre}</h3>
+          <div class="book-meta">${l.matiere||''} · ${l.niveau||''}</div>
+          <div class="book-footer">
+            <span class="book-price">${formatPrice(l.prix)}</span>
+            <span class="status-badge ${badge}">${l.statut}</span>
+          </div>
+          ${showActions ? `
+          <div style="display:flex;gap:8px;margin-top:10px;">
+            <button onclick="ouvrirModifierLivre(${l.id})"
+              style="flex:1;background:#4f46e5;color:#fff;border:none;padding:7px;border-radius:8px;cursor:pointer;font-size:12px;font-weight:600;">
+              ✏️ Modifier
+            </button>
+            <button onclick="supprimerLivre(${l.id})"
+              style="flex:1;background:#ef4444;color:#fff;border:none;padding:7px;border-radius:8px;cursor:pointer;font-size:12px;font-weight:600;">
+              🗑 Supprimer
+            </button>
+          </div>` : ''}
+        </div>
+      </div>`;
+    }
+
+    // ── Supprimer livre ───────────────────────────────────────────────────────
+    async function supprimerLivre(id) {
+      if (!confirm('Supprimer définitivement ce livre ? Cette action est irréversible.')) return;
+      try {
+        await API.delete(`${ENDPOINTS.LIVRES}${id}/`);
+        toast('Livre supprimé.', 'success');
+        loadMesLivres();
+      } catch (e) { toast(e.message || 'Erreur suppression', 'error'); }
+    }
+
+    // ── Modifier livre (modal) ────────────────────────────────────────────────
+    async function ouvrirModifierLivre(id) {
+      try {
+        const l = await API.get(`${ENDPOINTS.LIVRES}${id}/`);
+        // Créer modal dynamique
+        const existing = document.getElementById('edit-livre-modal');
+        if (existing) existing.remove();
+
+        const modal = document.createElement('div');
+        modal.id = 'edit-livre-modal';
+        modal.className = 'modal-overlay';
+        modal.style.display = 'flex';
+        modal.innerHTML = `
+          <div class="modal lg" style="max-width:560px;max-height:90vh;overflow-y:auto;">
+            <button class="modal-close" onclick="document.getElementById('edit-livre-modal').remove()">×</button>
+            <h2 style="margin-bottom:20px;">✏️ Modifier le livre</h2>
+            <div class="form-group"><label>Titre *</label><input class="form-control" id="e-titre" value="${l.titre||''}"></div>
+            <div class="form-group"><label>Auteur *</label><input class="form-control" id="e-auteur" value="${l.auteur||''}"></div>
+            <div class="form-row">
+              <div class="form-group"><label>Matière</label><input class="form-control" id="e-matiere" value="${l.matiere||''}"></div>
+              <div class="form-group"><label>Niveau</label><input class="form-control" id="e-niveau" value="${l.niveau||''}"></div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>État</label>
+                <select class="form-control" id="e-etat">
+                  <option value="NEUF"  ${l.etat==='NEUF' ?'selected':''}>Neuf</option>
+                  <option value="BON"   ${l.etat==='BON'  ?'selected':''}>Bon état</option>
+                  <option value="USAGE" ${l.etat==='USAGE'?'selected':''}>Usagé</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Prix (DH)</label>
+                <input class="form-control" id="e-prix" type="number" min="0" value="${l.prix||''}">
+              </div>
+            </div>
+            <div class="form-group"><label>Description</label><textarea class="form-control" id="e-desc" rows="3">${l.description||''}</textarea></div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Type annonce</label>
+                <select class="form-control" id="e-type-annonce">
+                  <option value="VENTE"   ${l.type_annonce==='VENTE'  ?'selected':''}>Vente</option>
+                  <option value="DON"     ${l.type_annonce==='DON'    ?'selected':''}>Don</option>
+                  <option value="ECHANGE" ${l.type_annonce==='ECHANGE'?'selected':''}>Échange</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Statut</label>
+                <select class="form-control" id="e-statut">
+                  <option value="DISPONIBLE" ${l.statut==='DISPONIBLE'?'selected':''}>Disponible</option>
+                  <option value="ARCHIVEE"   ${l.statut==='ARCHIVEE'  ?'selected':''}>Archivée</option>
+                </select>
+              </div>
+            </div>
+            <button onclick="sauvegarderLivre(${id})" class="btn btn-primary btn-block" style="margin-top:8px;">
+              💾 Enregistrer les modifications
+            </button>
+          </div>`;
+        document.body.appendChild(modal);
+        modal.addEventListener('click', (e) => { if (e.target === modal) modal.remove(); });
+      } catch (e) { toast('Impossible de charger le livre', 'error'); }
+    }
+
+    async function sauvegarderLivre(id) {
+      const payload = {
+        titre       : document.getElementById('e-titre').value.trim(),
+        auteur      : document.getElementById('e-auteur').value.trim(),
+        matiere     : document.getElementById('e-matiere').value.trim(),
+        niveau      : document.getElementById('e-niveau').value.trim(),
+        etat        : document.getElementById('e-etat').value,
+        prix        : document.getElementById('e-prix').value || null,
+        description : document.getElementById('e-desc').value.trim(),
+        type_annonce: document.getElementById('e-type-annonce').value,
+        statut      : document.getElementById('e-statut').value,
+      };
+      if (!payload.titre) { toast('Le titre est obligatoire', 'error'); return; }
+      try {
+        await API.patch(`${ENDPOINTS.LIVRES}${id}/`, payload);
+        document.getElementById('edit-livre-modal').remove();
+        toast('✅ Livre modifié avec succès !', 'success');
+        loadMesLivres();
+      } catch (e) { toast(e.message || 'Erreur modification', 'error'); }
+    }
+
+    // ── Mes ventes ────────────────────────────────────────────────────────────
+    async function loadMesVentes() {
+      const tbody = document.getElementById('ventes-tbody');
+      try {
+        const data = await API.get(ENDPOINTS.MES_VENTES);
+        const arr  = Array.isArray(data) ? data : (data.results||[]);
+        if (!arr.length) { tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--gray-400)">Aucune vente.</td></tr>'; return; }
+        tbody.innerHTML = arr.map(c => {
+          const date = new Date(c.date_commande).toLocaleDateString('fr-FR');
+          const acheteur = `${c.acheteur?.prenom||''} ${c.acheteur?.nom||''}`.trim() || c.acheteur?.username||'—';
+          const statBadge = statutBadge(c.statut);
+          const actions = c.statut === 'EN_ATTENTE' ? `
+            <button onclick="actionCommande(${c.id},'accepter')" style="background:var(--success);color:#fff;border:none;padding:4px 10px;border-radius:6px;cursor:pointer;font-size:12px;margin-right:4px;">✅ Accepter</button>
+            <button onclick="actionCommande(${c.id},'refuser')" style="background:var(--danger);color:#fff;border:none;padding:4px 10px;border-radius:6px;cursor:pointer;font-size:12px;">❌ Refuser</button>` : '—';
+          return `<tr>
+            <td><a href="/catalogue/detail/?id=${c.livre}" style="color:var(--primary)">${c.livre_details?.titre||c.livre}</a></td>
+            <td>${acheteur}</td>
+            <td>${formatPrice(c.livre_details?.prix)}</td>
+            <td>${date}</td>
+            <td>${statBadge}</td>
+            <td>${actions}</td>
+          </tr>`;
+        }).join('');
+      } catch (e) { tbody.innerHTML = '<tr><td colspan="6" style="color:var(--danger)">Erreur</td></tr>'; }
+    }
+
+    async function actionCommande(id, action) {
+      try {
+        const endpoint = action === 'accepter' ? ENDPOINTS.COMMANDE_ACCEPTER(id) : ENDPOINTS.COMMANDE_REFUSER(id);
+        await API.post(endpoint, {});
+        toast(action === 'accepter' ? 'Commande acceptée !' : 'Commande refusée.', 'success');
+        loadMesVentes();
+      } catch (e) { toast(e.message || 'Erreur', 'error'); }
+    }
+
+    // ── Mes achats ────────────────────────────────────────────────────────────
+    async function loadMesAchats() {
+      const tbody = document.getElementById('achats-tbody');
+      try {
+        const data = await API.get(ENDPOINTS.MES_ACHATS);
+        const arr  = Array.isArray(data) ? data : (data.results||[]);
+        if (!arr.length) { tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--gray-400)">Aucun achat.</td></tr>'; return; }
+        tbody.innerHTML = arr.map(c => {
+          const date    = new Date(c.date_commande).toLocaleDateString('fr-FR');
+          const vendeur = `${c.livre_details?.vendeur?.prenom||''} ${c.livre_details?.vendeur?.nom||''}`.trim() || '—';
+          return `<tr>
+            <td><a href="/catalogue/detail/?id=${c.livre}" style="color:var(--primary)">${c.livre_details?.titre||c.livre}</a></td>
+            <td>${vendeur}</td>
+            <td>${formatPrice(c.livre_details?.prix)}</td>
+            <td>${date}</td>
+            <td>${statutBadge(c.statut)}</td>
+          </tr>`;
+        }).join('');
+      } catch (e) { tbody.innerHTML = '<tr><td colspan="5" style="color:var(--danger)">Erreur</td></tr>'; }
+    }
+
+    // ── Favoris ───────────────────────────────────────────────────────────────
+    async function loadFavoris() {
+      const grid = document.getElementById('favoris-grid');
+      grid.innerHTML = '<p style="color:var(--gray-400)">Chargement…</p>';
+      try {
+        const data = await API.get(ENDPOINTS.FAVORIS);
+        const arr  = Array.isArray(data) ? data : (data.results||[]);
+        if (!arr.length) { grid.innerHTML = '<p style="color:var(--gray-400)">Aucun favori.</p>'; return; }
+        grid.innerHTML = arr.map(f => bookCard(f.livre_details)).join('');
+      } catch (e) { grid.innerHTML = '<p style="color:var(--danger)">Erreur</p>'; }
+    }
+
+    // ── Évaluations ───────────────────────────────────────────────────────────
+    async function loadEvals() {
+      const list = document.getElementById('evals-list');
+      list.innerHTML = '<p style="color:var(--gray-400)">Chargement…</p>';
+      try {
+        const data = await API.get(ENDPOINTS.EVALUATIONS);
+        const arr  = Array.isArray(data) ? data : (data.results||[]);
+        if (!arr.length) { list.innerHTML = '<p style="color:var(--gray-400)">Aucune évaluation.</p>'; return; }
+        list.innerHTML = arr.map(ev => `
+          <div style="background:#fff;border:1px solid var(--gray-200);border-radius:var(--radius);padding:16px;margin-bottom:12px;">
+            <div style="display:flex;justify-content:space-between;margin-bottom:8px;">
+              <strong>${ev.evaluateur?.prenom||''} ${ev.evaluateur?.nom||''} → ${ev.evalue_details?.prenom||''} ${ev.evalue_details?.nom||''}</strong>
+              <span style="color:#f59e0b">${'★'.repeat(ev.note)}${'☆'.repeat(5-ev.note)}</span>
+            </div>
+            ${ev.commentaire ? `<p style="font-size:14px;color:var(--gray-600)">${ev.commentaire}</p>` : ''}
+            <span style="font-size:12px;color:var(--gray-400)">${timeAgo(ev.date_creation)}</span>
+          </div>`).join('');
+      } catch (e) { list.innerHTML = '<p style="color:var(--danger)">Erreur</p>'; }
+    }
+
+    // ── Notifications ─────────────────────────────────────────────────────────
+    async function loadNotifsList() {
+      const list = document.getElementById('notifs-list');
+      list.innerHTML = '<p style="color:var(--gray-400)">Chargement…</p>';
+      try {
+        const data  = await API.get(ENDPOINTS.NOTIFICATIONS);
+        const notifs= Array.isArray(data) ? data : (data.results||[]);
+        if (!notifs.length) { list.innerHTML = '<p style="color:var(--gray-400)">Aucune notification.</p>'; return; }
+        list.innerHTML = notifs.map(n => {
+          const isCommande = n.type_notification === 'COMMANDE';
+          return `
+          <div class="notif-item ${n.est_lue ? '' : 'non-lue'}">
+            <div style="font-size:14px;">${n.contenu}</div>
+            ${isCommande && n.commande ? `
+            <div style="margin-top:8px;">
+              <button class="notif-accept" onclick="actionCommande(${n.commande},'accepter')">✅ Accepter</button>
+              <button class="notif-refuse" onclick="actionCommande(${n.commande},'refuser')">❌ Refuser</button>
+            </div>` : ''}
+            <div style="font-size:11px;color:var(--gray-400);margin-top:6px;">${timeAgo(n.date_creation)}</div>
+          </div>`;
+        }).join('');
+      } catch (e) { list.innerHTML = '<p style="color:var(--danger)">Erreur</p>'; }
+    }
+
+    async function marquerToutesLuesPage() {
+      try {
+        await API.post(ENDPOINTS.NOTIF_ALL_READ, {});
+        toast('Toutes les notifications marquées comme lues', 'success');
+        loadNotifsList();
+      } catch (e) { toast('Erreur', 'error'); }
+    }
+
+    function statutBadge(s) {
+      const map = {
+        'EN_ATTENTE':'attente', 'CONFIRMEE':'confirmee', 'REFUSEE':'annulee',
+        'EN_COURS_DE_LIVRAISON':'livraison', 'LIVREE':'livree', 'ANNULEE':'annulee'
+      };
+      const labels = {
+        'EN_ATTENTE':'En attente','CONFIRMEE':'Confirmée','REFUSEE':'Refusée',
+        'EN_COURS_DE_LIVRAISON':'En livraison','LIVREE':'Livrée','ANNULEE':'Annulée'
+      };
+      return `<span class="status-badge ${map[s]||''}">${labels[s]||s}</span>`;
+    }
+
+    loadProfile();
+
+    // ── Mini Dashboard Stats ──────────────────────────────────────────────────
+    async function loadStats() {
+      try {
+        const stats = await API.get(ENDPOINTS.PROFILES + 'stats/');
+        const { nb_livres_publies, nb_ventes, nb_achats } = stats;
+
+        document.getElementById('stat-livres').textContent = nb_livres_publies;
+        document.getElementById('stat-ventes').textContent = nb_ventes;
+        document.getElementById('stat-achats').textContent = nb_achats;
+
+        // Calculer les pourcentages pour les barres
+        const maxVal = Math.max(nb_livres_publies, nb_ventes, nb_achats, 1);
+        const pct = v => Math.max(4, Math.round((v / maxVal) * 100));
+
+        setTimeout(() => {
+          document.getElementById('bar-livres').style.width = pct(nb_livres_publies) + '%';
+          document.getElementById('bar-ventes').style.width = pct(nb_ventes) + '%';
+          document.getElementById('bar-achats').style.width = pct(nb_achats) + '%';
+        }, 200);
+      } catch (e) {
+        // Silently fail — dashboard not critical
+      }
+    }
+    loadStats();
+  </script>
+</body>
+</html>

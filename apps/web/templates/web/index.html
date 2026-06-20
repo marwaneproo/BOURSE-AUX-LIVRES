@@ -1,0 +1,221 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" type="image/png" href="{% static 'web/images/logo-emsi.png' %}">
+  <title>Bourse aux Livres EMSI — Plateforme étudiante</title>
+  <meta name="description" content="Plateforme d'échange, de don et de vente de livres académiques entre étudiants de l'EMSI." />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{% static 'web/css/style.css' %}" />
+</head>
+<body>
+
+  <!-- HEADER -->
+  <header class="header">
+    <div class="container header-inner">
+      <a href="/" class="logo">
+        <!-- REMPLACÉ : emoji → image logo -->
+        <img src="{% static 'web/images/logo-emsi.png' %}" alt="Logo Bourse aux Livres EMSI" class="logo-img" />
+        <div class="logo-text">
+          Bourse aux Livres
+          <small>EMSI</small>
+        </div>
+      </a>
+      <nav class="header-actions">
+        <a href="/connexion/" class="btn btn-outline">Se connecter</a>
+        <a href="/inscription/" class="btn btn-primary">S'inscrire</a>
+      </nav>
+    </div>
+  </header>
+
+
+   <!-- HERO -->
+  <section class="hero">
+    <div class="container hero-grid">
+      <div class="hero-content">
+        <span class="subtitle">Réservé aux étudiants EMSI</span>
+        <h1>Bourse aux Livres</h1>
+        <p class="tagline">
+          Donnez une seconde vie à vos livres académiques. La plateforme d'échange,
+          de don et de vente de livres entre étudiants de l'École Marocaine des
+          Sciences de l'Ingénieur.
+        </p>
+        <div class="hero-cta">
+          <a href="/inscription/" class="btn btn-primary btn-lg">Rejoindre la communauté</a>
+          <a href="/catalogue/" class="btn btn-outline btn-lg">Parcourir les livres</a>
+        </div>
+      </div>
+      <div class="hero-image">
+        <img src="{% static 'web/images/hero-books.jpg' %}" alt="Étudiants EMSI échangeant des livres académiques" />
+      </div>
+    </div>
+  </section>
+ 
+<!-- AVANTAGES -->
+<section>
+  <div class="container">
+    <div class="section-header">
+      <h2>Pourquoi nous rejoindre ?</h2>
+      <p>Échanger, apprendre et grandir ensemble autour des livres</p>
+    </div>
+    <div class="features">
+      
+      <!-- 1. Économisez -->
+      <div class="feature-card">
+        <div class="feature-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+            <path d="M10.75 10.818v2.614A3.13 3.13 0 0 0 11.888 13c.482-.315.612-.648.612-.875 0-.227-.13-.56-.612-.875a3.13 3.13 0 0 0-1.138-.432ZM8.33 8.62c.053.055.115.11.184.164.208.16.46.284.736.363V6.603a2.45 2.45 0 0 0-.35.13c-.14.065-.27.143-.386.233-.377.292-.514.627-.514.909 0 .184.058.39.202.592.037.051.08.102.128.152Z" />
+            <path fill-rule="evenodd" d="M18 10a8 8 0 1 1-16 0 8 8 0 0 1 16 0Zm-8-6a.75.75 0 0 1 .75.75v.316a3.78 3.78 0 0 1 1.653.713c.426.33.744.74.925 1.2a.75.75 0 0 1-1.395.55 1.35 1.35 0 0 0-.447-.563 2.187 2.187 0 0 0-.736-.363V9.3c.698.093 1.383.32 1.959.696.787.514 1.29 1.27 1.29 2.13 0 .86-.504 1.616-1.29 2.13-.576.377-1.261.603-1.96.696v.299a.75.75 0 1 1-1.5 0v-.3c-.697-.092-1.382-.318-1.958-.695-.482-.315-.857-.717-1.078-1.188a.75.75 0 1 1 1.359-.636c.08.173.245.376.54.569.313.205.706.353 1.138.432v-2.748a3.782 3.782 0 0 1-1.653-.713C6.9 9.433 6.5 8.681 6.5 7.875c0-.805.4-1.558 1.097-2.096a3.78 3.78 0 0 1 1.653-.713V4.75A.75.75 0 0 1 10 4Z" clip-rule="evenodd" />
+          </svg>
+        </div>
+        <h3>Économisez</h3>
+        <p>Achetez vos livres de cours à prix réduit auprès des étudiants des promotions précédentes.</p>
+      </div>
+
+      <!-- 2. Plateforme sécurisée -->
+      <div class="feature-card">
+        <div class="feature-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M10.339 2.237a.531.531 0 0 0-.678 0 11.947 11.947 0 0 1-7.078 2.75.5.5 0 0 0-.479.425A12.11 12.11 0 0 0 2 7c0 5.163 3.26 9.564 7.834 11.257a.48.48 0 0 0 .332 0C14.74 16.564 18 12.163 18 7c0-.538-.035-1.069-.104-1.589a.5.5 0 0 0-.48-.425 11.947 11.947 0 0 1-7.077-2.75ZM10 6a.75.75 0 0 1 .75.75v3.5a.75.75 0 0 1-1.5 0v-3.5A.75.75 0 0 1 10 6Zm0 9a1 1 0 1 0 0-2 1 1 0 0 0 0 2Z" clip-rule="evenodd" />
+          </svg>
+        </div>
+        <h3>Plateforme sécurisée</h3>
+        <p>Communauté EMSI vérifiée. Échangez en toute confiance avec d'autres étudiants.</p>
+      </div>
+
+      <!-- 3. Solidaire -->
+      <div class="feature-card">
+        <div class="feature-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12Z" />
+          </svg>
+        </div>
+        <h3>Solidaire</h3>
+        <p>Dons et échanges pour s'entraider. Une initiative étudiante au service de tous.</p>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+  <!-- LIVRES POPULAIRES -->
+  <section style="background: var(--gray-50)">
+    <div class="container">
+      <div class="section-header">
+        <h2>Livres populaires</h2>
+        <p>Découvrez les ouvrages les plus consultés sur la plateforme</p>
+      </div>
+      <div class="book-grid" id="popular-books">
+        <!-- Rempli par JS, avec fallback statique -->
+      </div>
+      <div style="text-align:center; margin-top:40px;">
+        <a href="/catalogue/" class="btn btn-primary btn-lg">Voir tous les livres</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-grid">
+        <div class="footer-brand">
+                 <div class="logo">
+            <img src="{% static 'web/images/logo-emsi.png' %}" alt="Logo Bourse aux Livres EMSI" class="logo-img" />
+            <div class="logo-text">Bourse aux Livres<small>EMSI</small></div>
+          </div>
+          <p>Une initiative pour faciliter l'accès aux ressources éducatives pour tous les étudiants de l'EMSI.</p>
+        </div>
+        <div>
+          <h4>Navigation</h4>
+          <ul>
+            <li><a href="/">Accueil</a></li>
+            <li><a href="/catalogue/">Livres</a></li>
+            <li><a href="#">Comment ça marche</a></li>
+            <li><a href="#">Contact</a></li>
+          </ul>
+        </div>
+        <div>
+          <h4>Compte</h4>
+          <ul>
+            <li><a href="/connexion/">Se connecter</a></li>
+            <li><a href="/inscription/">S'inscrire</a></li>
+            <li><a href="/profil/">Mon profil</a></li>
+          </ul>
+        </div>
+        <div>
+          <h4>Légal</h4>
+          <ul>
+            <li><a href="#">Mentions légales</a></li>
+            <li><a href="#">Confidentialité</a></li>
+            <li><a href="#">CGU</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        © 2026 Bourse aux Livres EMSI. Tous droits réservés.
+      </div>
+    </div>
+  </footer>
+
+  <script src="{% static 'web/js/config.js' %}"></script>
+  <script src="{% static 'web/js/api.js' %}"></script>
+  <script src="{% static 'web/js/main.js' %}"></script>
+  <script>
+    async function loadPopular() {
+      const grid = document.getElementById('popular-books');
+      if (!grid) return;
+      grid.innerHTML = '<p style="color:var(--gray-400);text-align:center;padding:24px;">Chargement…</p>';
+      let books = [];
+      try {
+        const data = await API.get(ENDPOINTS.LIVRES + '?page_size=8');
+        books = Array.isArray(data) ? data : (data.results || []);
+      } catch (e) { /* pas de backend */ }
+
+      if (!books.length) {
+        grid.innerHTML = '<p style="color:var(--gray-400);text-align:center;padding:24px;">Aucun livre disponible pour le moment.</p>';
+        return;
+      }
+
+      grid.innerHTML = books.slice(0, 8).map(b => {
+        const img    = b.images && b.images[0];
+        const imgUrl = img
+          ? (img.image_url || (img.image ? CONFIG.MEDIA_URL.replace(/\/$/, '') + '/' + img.image.replace(/^\//, '') : null))
+          : null;
+        const nom      = b.vendeur ? (`${b.vendeur.prenom||''} ${b.vendeur.nom||''}`.trim() || b.vendeur.username) : 'Étudiant EMSI';
+        const etat     = (b.etat || 'BON').toLowerCase();
+        const etatLbl  = {neuf:'Neuf', bon:'Bon état', usage:'Usagé'}[etat] || 'Bon';
+        const etatColor= {neuf:'#16a34a', bon:'#2563eb', usage:'#78716c'}[etat] || '#2563eb';
+        const prix     = (!b.prix || b.prix == 0)
+          ? '<span style="color:#16a34a;font-weight:700;">Gratuit</span>'
+          : `<span style="color:#0f172a;font-weight:800;">${parseFloat(b.prix).toFixed(0)} DH</span>`;
+        const initAv   = nom.split(' ').filter(Boolean).map(w=>w[0]).slice(0,2).join('').toUpperCase() || '?';
+        return `
+        <a href="/catalogue/detail/?id=${b.id}" style="text-decoration:none;display:flex;flex-direction:column;background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,0.08);border:1px solid #f1f5f9;transition:transform 0.2s,box-shadow 0.2s;color:inherit;" onmouseover="this.style.transform='translateY(-4px)';this.style.boxShadow='0 8px 28px rgba(0,0,0,0.13)';" onmouseout="this.style.transform='';this.style.boxShadow='0 2px 12px rgba(0,0,0,0.08)';">
+          <div style="position:relative;height:200px;overflow:hidden;background:#f1f5f9;flex-shrink:0;">
+            ${imgUrl
+              ? `<img src="${imgUrl}" alt="${b.titre}" style="width:100%;height:100%;object-fit:cover;" loading="lazy">`
+              : `<div style="height:100%;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#dcfce7,#f0fdf4);font-size:56px;">📗</div>`}
+            <span style="position:absolute;top:10px;left:10px;background:${etatColor};color:#fff;font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;letter-spacing:0.04em;">${etatLbl}</span>
+          </div>
+          <div style="padding:16px;flex:1;display:flex;flex-direction:column;gap:5px;">
+            <div style="font-weight:700;font-size:14px;color:#0f172a;line-height:1.35;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">${b.titre}</div>
+            <div style="font-size:12px;color:#64748b;">${b.auteur||''}${b.matiere?' · '+b.matiere:''}</div>
+            <div style="margin-top:auto;padding-top:10px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px;">
+              <div style="font-size:16px;">${prix}</div>
+              <div style="display:flex;align-items:center;gap:5px;font-size:12px;color:#64748b;">
+                <div style="width:24px;height:24px;border-radius:50%;background:linear-gradient(135deg,#bbf7d0,#4ade80);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#166534;flex-shrink:0;">${initAv}</div>
+                <span style="max-width:90px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${nom}</span>
+              </div>
+            </div>
+          </div>
+        </a>`;
+      }).join('');
+    }
+    loadPopular();
+  </script>
+</body>
+</html>
